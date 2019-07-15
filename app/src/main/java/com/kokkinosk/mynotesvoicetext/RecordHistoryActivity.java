@@ -58,7 +58,7 @@ public class RecordHistoryActivity extends AppCompatActivity {
         FileFilter filter = new FileFilter() {
             @Override
             public boolean accept(File file) {
-                return ( file.getAbsolutePath().matches(".*\\.m4a")  || file.getAbsolutePath().matches(".*\\.3gpp"));
+                return ( file.getAbsolutePath().matches(".*\\.m4a") );// || file.getAbsolutePath().matches(".*\\.3gpp"));
             }
         };
         recordingArray = dir.listFiles(filter);
