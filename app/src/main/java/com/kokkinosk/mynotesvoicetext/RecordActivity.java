@@ -65,35 +65,35 @@ public class RecordActivity extends AppCompatActivity {
         RECORDING,RESET,PAUSE
     }
     String directoryPath ;
-
+    final RecordingManager recman = new RecordingManager();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
         //------------ INITIAL -----------
-            super.onCreate(savedInstanceState);
-            setContentView(R.layout.activity_record);
-            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_record);
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
         //--------- PERMISSIONS ----------
-            PermissionsUtils.checkAndRequestPermissions(this);
+        PermissionsUtils.checkAndRequestPermissions(this);
 
 
         //--------- VARIABLES ------------
-            ActionBar actionbar = getSupportActionBar();
-            directoryPath = getFilesDir().getAbsolutePath();
-            Window window = this.getWindow();
-            FloatingActionButton fab_rec = findViewById(R.id.fab_rec);
-            FloatingActionButton fab_rec_stop = findViewById(R.id.fab_stop_rec);
-            final RecordingManager recman = new RecordingManager();
+        ActionBar actionbar = getSupportActionBar();
+        directoryPath = getFilesDir().getAbsolutePath();
+        Window window = this.getWindow();
+        FloatingActionButton fab_rec = findViewById(R.id.fab_rec);
+        FloatingActionButton fab_rec_stop = findViewById(R.id.fab_stop_rec);
+
 
         //--------- CUSTOMIZE LOOK ---------
-            window.setStatusBarColor(ContextCompat.getColor(this,R.color.colorDarkRed));
-            timerTextView = findViewById(R.id.timer);
-            if (actionbar != null) {
-                actionbar.setTitle("New Recording");
-                actionbar.setBackgroundDrawable(new ColorDrawable(Color.RED));
-            }
+        window.setStatusBarColor(ContextCompat.getColor(this, R.color.colorDarkRed));
+        timerTextView = findViewById(R.id.timer);
+        if (actionbar != null) {
+            actionbar.setTitle("New Recording");
+            actionbar.setBackgroundDrawable(new ColorDrawable(Color.RED));
+        }
 
         //---------- F.A.B. SETUP -----------
 
@@ -101,16 +101,16 @@ public class RecordActivity extends AppCompatActivity {
         fab_rec_stop.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-               // stopRecording();
+                // stopRecording();
                 //toggleRecordIcon();
                 recman.stopRecording();
                 toggleRecordIcon(Status.RESET);
                 view.animate()
                         .rotationBy(180)
-                        .translationX(-view.getWidth()*0.9f)
+                        .translationX(-view.getWidth() * 0.9f)
                         .alpha(0f);
                 view.setVisibility(View.INVISIBLE);
-                ((FloatingActionButton)findViewById(R.id.fab_rec)).setImageDrawable(ContextCompat.getDrawable(findViewById(R.id.fab_rec).getContext(), R.drawable.baseline_mic_white_48dp));
+                ((FloatingActionButton) findViewById(R.id.fab_rec)).setImageDrawable(ContextCompat.getDrawable(findViewById(R.id.fab_rec).getContext(), R.drawable.baseline_mic_white_48dp));
 
 
             }
@@ -125,8 +125,9 @@ public class RecordActivity extends AppCompatActivity {
 
             }
         });
-
     }
+
+
 
 
 
@@ -233,9 +234,19 @@ public class RecordActivity extends AppCompatActivity {
             *
             *
             */
-
             if (tag.equals("RESET")){
                 startRecording();
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    if (findViewById(R.id.fab_stop_rec).getVisibility() == View.INVISIBLE) {
+                        findViewById(R.id.fab_stop_rec).setVisibility(View.VISIBLE);
+                        findViewById(R.id.fab_stop_rec).animate()
+                                .rotationBy(180)
+                                .translationX(v.getWidth() * 0.9f)
+                                .alpha(1.0f);
+
+
+                    }
+                }
                 v.setTag("RECORD");
             }
             else if (tag.equals("PAUSE")){
@@ -359,7 +370,7 @@ public class RecordActivity extends AppCompatActivity {
             int secs = (int) (timeInMilliseconds / 1000);
             int mins = secs / 60;
             secs = secs % 60;
-            if (timerTextView != null /*&& !pause*/)
+            if (timerTextView != null && !recman.isPaused)
                 timerTextView.setText("" + String.format("%02d", mins) + ":" + String.format("%02d", secs));
             customHandler.postDelayed(this,500);
         }
