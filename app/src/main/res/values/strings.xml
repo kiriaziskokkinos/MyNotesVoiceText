@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">MyNotes Voice &amp; Text</string>
+    <string name="Null">Null</string>
+    <string name="delete_recording">Delete Recording</string>
+    <item name="fab_voice" type="id" />
+    <item name="fab_text" type="id" />
+    <item name="fab_action3" type="id" />
+    <item name="fab_action4" type="id" />
+</resources>
