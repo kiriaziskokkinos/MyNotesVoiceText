@@ -331,8 +331,6 @@ public class RecordActivity extends AppCompatActivity {
 
 
     void toggleRecordIcon(Status status  ){
-        Toast.makeText(getApplicationContext(),"Click!",Toast.LENGTH_SHORT).show();
-
         switch (status) {
             case RESET:
                 ((FloatingActionButton)findViewById(R.id.fab_rec)).setImageDrawable(ContextCompat.getDrawable(findViewById(R.id.fab_rec).getContext(), R.drawable.baseline_mic_white_48dp));
