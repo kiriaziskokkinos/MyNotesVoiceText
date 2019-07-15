@@ -23,8 +23,8 @@ import java.util.List;
 class  NoteManager {
 
     private List<Note> notes;
-    File file;
-    Gson gson = new Gson();
+    private File file;
+    private Gson gson = new Gson();
 
      NoteManager(Context applicationContext){
         if (applicationContext == null) {
@@ -54,7 +54,7 @@ class  NoteManager {
         writeChanges();
     }
 
-    ArrayList<Note> initializeNotes(Context context){
+    private ArrayList<Note> initializeNotes(Context context){
         try {
             JsonReader reader = null;
             file.createNewFile();
@@ -77,7 +77,7 @@ class  NoteManager {
 
 
 
-    void writeChanges(){
+    private void writeChanges(){
         try {
             FileWriter fw = new FileWriter(file);
             fw.write(gson.toJson(notes,List.class));

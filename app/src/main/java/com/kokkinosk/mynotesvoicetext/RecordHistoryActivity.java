@@ -186,7 +186,7 @@ public class RecordHistoryActivity extends AppCompatActivity {
                 ((LinearLayout)activity.findViewById(R.id.linlay)).addView(rec.getMyView());
             }
             ((ProgressBar)activityReference.get().findViewById(R.id.progressBar)).setIndeterminate(false);
-            ((ProgressBar)activityReference.get().findViewById(R.id.progressBar)).setVisibility(View.GONE);
+            activityReference.get().findViewById(R.id.progressBar).setVisibility(View.GONE);
         }
     }
 }

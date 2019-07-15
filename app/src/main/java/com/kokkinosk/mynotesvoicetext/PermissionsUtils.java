@@ -14,14 +14,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PermissionsUtils {
-    public static final int REQUEST_PERMISSION_MULTIPLE = 0;
+    private static final int REQUEST_PERMISSION_MULTIPLE = 0;
 //    public static final int REQUEST_PERMISSION_CAMERA = 1;
 //    public static final int REQUEST_PERMISSION_LOCATION = 2;
-    public static final int REQUEST_WRITE_EXTERNAL = 3;
-    public static final int REQUEST_RECORD_AUDIO = 3;
+    private static final int REQUEST_WRITE_EXTERNAL = 3;
+    private static final int REQUEST_RECORD_AUDIO = 3;
 
 
-    public static boolean checkAndRequestPermissions(Activity activity) {
+    static void checkAndRequestPermissions(Activity activity) {
         int permissionWriteExternal = ContextCompat.checkSelfPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE);
         int permissionRecordAudio = ContextCompat.checkSelfPermission(activity, Manifest.permission.RECORD_AUDIO);
 
@@ -43,10 +43,8 @@ public class PermissionsUtils {
             ActivityCompat.requestPermissions(activity,
                     listPermissionsNeeded.toArray(new String[listPermissionsNeeded.size()]),
                     REQUEST_PERMISSION_MULTIPLE);
-            return false;
         }
 
-        return true;
     }
 
     public static void requestRecordAudioPermission(Activity activity) {

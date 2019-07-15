@@ -62,7 +62,7 @@ public class LandingActivity extends AppCompatActivity {
             FileFilter filter = new FileFilter() {
                 @Override
                 public boolean accept(File file) {
-                    return ( file.getAbsolutePath().matches(".*\\.m4a")  || file.getAbsolutePath().matches(".*\\.3gpp"));
+                    return ( file.getAbsolutePath().matches(".*\\.m4a")); // || file.getAbsolutePath().matches(".*\\.3gpp"));
                 }
             };
             String extStore = System.getenv("EXTERNAL_STORAGE");
