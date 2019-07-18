@@ -1,55 +1,36 @@
 package com.kokkinosk.mynotesvoicetext;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-import androidx.transition.Visibility;
 
-import android.Manifest;
 import android.animation.Animator;
 import android.annotation.SuppressLint;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
-import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
-import android.graphics.drawable.Drawable;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.SystemClock;
-import android.text.format.DateUtils;
 import android.util.Log;
-import android.view.Gravity;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.Window;
-import android.view.animation.RotateAnimation;
 import android.widget.EditText;
-import android.widget.PopupWindow;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.io.File;
-import java.io.IOException;
-import java.time.LocalDateTime;
 import java.util.Calendar;
-import java.util.Objects;
-
-import static java.security.AccessController.getContext;
 
 public class RecordActivity extends AppCompatActivity {
     private static String fileName = null;
@@ -65,7 +46,7 @@ public class RecordActivity extends AppCompatActivity {
         RECORDING,RESET,PAUSE
     }
     String directoryPath ;
-    final RecordingManager recman = new RecordingManager();
+    final RecordingUIManager recUIMan = new RecordingUIManager();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -103,7 +84,7 @@ public class RecordActivity extends AppCompatActivity {
             public void onClick(View view) {
                 // stopRecording();
                 //toggleRecordIcon();
-                recman.stopRecording();
+                recUIMan.stopRecording();
                 toggleRecordIcon(Status.RESET);
                 view.animate()
                         .rotationBy(180)
@@ -111,17 +92,17 @@ public class RecordActivity extends AppCompatActivity {
                         .alpha(0f);
                 view.setVisibility(View.INVISIBLE);
                 ((FloatingActionButton) findViewById(R.id.fab_rec)).setImageDrawable(ContextCompat.getDrawable(findViewById(R.id.fab_rec).getContext(), R.drawable.baseline_mic_white_48dp));
-
+                findViewById(R.id.fab_rec).setTag("RESET");
 
             }
         });
 
         ///------/* START/PAUSE RECORDING BUTTON */---------
-        fab_rec.setTag("RESET");
+
         fab_rec.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                recman.mainAction(view);
+                recUIMan.mainAction(view);
 
             }
         });
@@ -210,7 +191,7 @@ public class RecordActivity extends AppCompatActivity {
 
 
 
-    private class RecordingManager{
+    private class RecordingUIManager{
 
         private boolean isRecording = false;
         private boolean isPaused = false;
@@ -370,7 +351,7 @@ public class RecordActivity extends AppCompatActivity {
             int secs = (int) (timeInMilliseconds / 1000);
             int mins = secs / 60;
             secs = secs % 60;
-            if (timerTextView != null && !recman.isPaused)
+            if (timerTextView != null && !recUIMan.isPaused)
                 timerTextView.setText("" + String.format("%02d", mins) + ":" + String.format("%02d", secs));
             customHandler.postDelayed(this,500);
         }
