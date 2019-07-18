@@ -15,6 +15,7 @@
         android:clickable="true"
         android:cropToPadding="false"
         android:scaleType="center"
+        android:tag="RESET"
         android:tint="#F7F7F7"
         app:backgroundTint="@color/colorRed"
         app:fabCustomSize="80dp"

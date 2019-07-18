@@ -4,7 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.net.Uri;
 import android.text.format.Formatter;
-import android.widget.Toast;
+import android.util.Log;
 
 import java.io.File;
 import java.io.FileFilter;
@@ -27,6 +27,12 @@ class RecordingManager {
             activityReference = new WeakReference<>(activity);
             activityContext = new WeakReference<>(activity.getApplicationContext());
             dirPath = ((Activity)activityReference.get()).getFilesDir().getAbsolutePath()+"/Recordings";
+            File directory = new File(dirPath);
+            if (!directory.exists()) {
+                if (!directory.mkdir()) {
+                    Log.e("ERROR","couldn't create directory " + dirPath );
+                }
+            }
             scanNewRecordings();
 
         }

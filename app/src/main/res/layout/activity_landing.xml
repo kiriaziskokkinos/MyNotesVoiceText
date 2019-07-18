@@ -4,16 +4,36 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".LandingActivity"
+    android:background="#e0e0e0"
 
 
+    tools:context=".LandingActivity">
 
+    <LinearLayout
+        android:id="@+id/linlay2"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
 
-    >
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="8dp" />
+
+        <ProgressBar
+            android:id="@+id/progressBar"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:indeterminate="true"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:visibility="visible" />
+    </LinearLayout>
 
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:background="#e0e0e0"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -23,17 +43,9 @@
             android:id="@+id/linlay"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:background="#e0e0e0"
             android:orientation="vertical">
 
-            <ProgressBar
-                android:id="@+id/progressBar"
-                style="?android:attr/progressBarStyleHorizontal"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:indeterminate="true"
-                android:paddingStart="8dp"
-                android:paddingEnd="8dp"
-                android:visibility="visible" />
         </LinearLayout>
     </ScrollView>
 
@@ -41,6 +53,7 @@
         android:id="@+id/overlay"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
+
     <com.leinardi.android.speeddial.SpeedDialView
         android:id="@+id/speedDial"
         android:layout_width="wrap_content"

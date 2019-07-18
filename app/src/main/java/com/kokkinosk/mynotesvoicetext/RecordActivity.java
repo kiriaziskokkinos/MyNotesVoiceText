@@ -1,10 +1,5 @@
 package com.kokkinosk.mynotesvoicetext;
 
-import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
-
 import android.animation.Animator;
 import android.annotation.SuppressLint;
 import android.content.DialogInterface;
@@ -26,6 +21,11 @@ import android.view.Window;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
@@ -62,7 +62,7 @@ public class RecordActivity extends AppCompatActivity {
 
         //--------- VARIABLES ------------
         ActionBar actionbar = getSupportActionBar();
-        directoryPath = getFilesDir().getAbsolutePath();
+        directoryPath = getFilesDir().getAbsolutePath()+"/Recordings";
         Window window = this.getWindow();
         FloatingActionButton fab_rec = findViewById(R.id.fab_rec);
         FloatingActionButton fab_rec_stop = findViewById(R.id.fab_stop_rec);
