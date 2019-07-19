@@ -1,4 +1,4 @@
-# MyNotesVoiceText
+# MyNotes: Voice & Text
 
 Semester Project for ICTE192 (Ενσωματωμένα Συστήματα)
 
