@@ -24,19 +24,20 @@ class GenerateRecordingViews extends AsyncTask<Void, View, String> {
 
     private WeakReference<Activity> activityReference;
     private MediaMetadataRetriever mmr = new MediaMetadataRetriever();
-    RecordingManager recman ;
+    private RecordingManager recman;
+
     // only retain a weak reference to the activity
     GenerateRecordingViews(Activity context) {
         activityReference = new WeakReference<>(context);
     }
 
     @Override
-    protected void onPreExecute(){
+    protected void onPreExecute() {
         activityReference.get().findViewById(R.id.progressBar).setVisibility(View.VISIBLE);
-        ((ProgressBar)activityReference.get().findViewById(R.id.progressBar)).setIndeterminate(true);
-        //((LinearLayout)activityReference.get().findViewById(R.id.linlay)).removeAllViews();
-        recman =new RecordingManager(activityReference.get());
+        ((ProgressBar) activityReference.get().findViewById(R.id.progressBar)).setIndeterminate(true);
+        recman = new RecordingManager(activityReference.get());
     }
+
     @Override
     protected String doInBackground(Void... params) {
 
@@ -48,6 +49,7 @@ class GenerateRecordingViews extends AsyncTask<Void, View, String> {
 
         return "task finished";
     }
+
     @Override
     protected void onProgressUpdate(View... progress) {
 
@@ -66,7 +68,7 @@ class GenerateRecordingViews extends AsyncTask<Void, View, String> {
         if (activity == null || activity.isFinishing()) return;
 
         int i;
-        for ( i = 0; i < RecordingManager.recordingArrayList.size(); i++) {
+        for (i = 0; i < RecordingManager.recordingArrayList.size(); i++) {
             final Recording rec = RecordingManager.recordingArrayList.get(i);
             currentView = rec.getMyView();
             currentView.setBackgroundColor(ContextCompat.getColor(activity.getApplicationContext(), R.color.colorWhite));
@@ -130,18 +132,18 @@ class GenerateRecordingViews extends AsyncTask<Void, View, String> {
                             }).show();
                 }
             });
-            ((LinearLayout) activity.findViewById(R.id.linlay)).addView(rec.getMyView(),i);
+            ((LinearLayout) activity.findViewById(R.id.linlay)).addView(rec.getMyView(), i);
 
         }
         //if (((LinearLayout) activity.findViewById(R.id.linlay)).getChildCount() > i)
-          //  ((LinearLayout) activity.findViewById(R.id.linlay)).removeViews(i+1,((LinearLayout) activity.findViewById(R.id.linlay)).getChildCount());
+        //  ((LinearLayout) activity.findViewById(R.id.linlay)).removeViews(i+1,((LinearLayout) activity.findViewById(R.id.linlay)).getChildCount());
         ((LinearLayout) activity.findViewById(R.id.linlay)).getChildCount();
         while (((LinearLayout) activity.findViewById(R.id.linlay)).getChildCount() > i) {
             int count = ((LinearLayout) activity.findViewById(R.id.linlay)).getChildCount();
 
-            ((LinearLayout) activity.findViewById(R.id.linlay)).removeViewAt(count-1);
+            ((LinearLayout) activity.findViewById(R.id.linlay)).removeViewAt(count - 1);
         }
-        ((ProgressBar)activityReference.get().findViewById(R.id.progressBar)).setIndeterminate(false);
+        ((ProgressBar) activityReference.get().findViewById(R.id.progressBar)).setIndeterminate(false);
         activityReference.get().findViewById(R.id.progressBar).setVisibility(View.GONE);
     }
 }

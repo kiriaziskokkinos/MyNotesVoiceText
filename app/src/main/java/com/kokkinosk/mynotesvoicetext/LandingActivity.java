@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.view.Window;
-import android.widget.LinearLayout;
 
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
@@ -25,11 +24,6 @@ public class LandingActivity extends AppCompatActivity {
         PermissionsUtils.checkAndRequestPermissions(this);
         createSpeedDial();
         setColours();
-        LinearLayout linlay = findViewById(R.id.linlay);
-        //linlay.removeAllViews();
-        //new GenerateRecordingViews(this).execute();
-
-
     }
 
     void setColours(){
@@ -86,5 +80,6 @@ public class LandingActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         new GenerateRecordingViews(this).execute();
+        new GenerateNotesViews(this).execute();
     }
 }
