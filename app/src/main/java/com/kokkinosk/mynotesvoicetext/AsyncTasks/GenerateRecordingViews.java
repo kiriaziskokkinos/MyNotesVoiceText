@@ -1,4 +1,4 @@
-package com.kokkinosk.mynotesvoicetext;
+package com.kokkinosk.mynotesvoicetext.AsyncTasks;
 
 import android.app.Activity;
 import android.content.DialogInterface;
@@ -17,17 +17,21 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 
+import com.kokkinosk.mynotesvoicetext.R;
+import com.kokkinosk.mynotesvoicetext.Recording;
+import com.kokkinosk.mynotesvoicetext.RecordingManager;
+
 import java.io.File;
 import java.lang.ref.WeakReference;
 
-class GenerateRecordingViews extends AsyncTask<Void, View, String> {
+public class GenerateRecordingViews extends AsyncTask<Void, View, String> {
 
     private WeakReference<Activity> activityReference;
     private MediaMetadataRetriever mmr = new MediaMetadataRetriever();
     private RecordingManager recman;
 
     // only retain a weak reference to the activity
-    GenerateRecordingViews(Activity context) {
+    public GenerateRecordingViews(Activity context) {
         activityReference = new WeakReference<>(context);
     }
 

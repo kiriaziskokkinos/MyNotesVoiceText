@@ -2,7 +2,7 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 29
-    buildToolsVersion "29.0.0"
+    buildToolsVersion "29.0.1"
     defaultConfig {
         applicationId "com.kokkinosk.mynotesvoicetext"
         minSdkVersion 23
@@ -15,6 +15,13 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    splits {
+        abi {
+            enable true
+            reset()
+            include "x86", "x86_64"
         }
     }
 }
@@ -31,7 +38,6 @@ dependencies {
     androidTestImplementation 'androidx.test:runner:1.2.0'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
     implementation 'com.google.android.material:material:1.0.0'
-    //implementation 'com.getbase:floatingactionbutton:1.10.1'
     implementation "com.leinardi.android:speed-dial:2.0.1"
     implementation 'com.google.code.gson:gson:2.8.5'
 

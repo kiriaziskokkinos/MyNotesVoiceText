@@ -10,6 +10,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
 
+import com.kokkinosk.mynotesvoicetext.AsyncTasks.GenerateNotesViews;
+import com.kokkinosk.mynotesvoicetext.AsyncTasks.GenerateRecordingViews;
 import com.leinardi.android.speeddial.SpeedDialActionItem;
 import com.leinardi.android.speeddial.SpeedDialView;
 
@@ -33,10 +35,6 @@ public class LandingActivity extends AppCompatActivity {
         actionbar.setTitle("Notes & Voice Recordings");
         actionbar.setBackgroundDrawable(new ColorDrawable(ContextCompat.getColor(this,R.color.colorOrange)));
     }
-
-
-
-
 
 
     void createSpeedDial(){

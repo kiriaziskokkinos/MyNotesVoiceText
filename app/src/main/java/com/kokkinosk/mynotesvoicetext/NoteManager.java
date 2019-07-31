@@ -15,13 +15,13 @@ import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 
-class  NoteManager {
+public class NoteManager {
 
-    static ArrayList<Note> notes;
+    public static ArrayList<Note> notes;
     private static File file;
     private static Gson gson = new Gson();
 
-     NoteManager(Context applicationContext){
+    public NoteManager(Context applicationContext) {
         if (applicationContext == null) {
             Log.e("NoteManager","got NULL context in constructor");
         }
@@ -35,7 +35,7 @@ class  NoteManager {
          Log.d("NoteManager", "Initialized and found " + notes.size() + " notes stored");
     }
 
-    boolean check(){
+    public boolean check() {
          return (notes == null);
     }
 

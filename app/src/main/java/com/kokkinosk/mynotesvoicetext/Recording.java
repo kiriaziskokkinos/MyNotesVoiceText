@@ -4,7 +4,7 @@ import android.net.Uri;
 import android.util.Log;
 import android.view.View;
 
-class Recording {
+public class Recording {
     private String Title;
     private long Duration;
     private Uri filePath;
@@ -30,23 +30,33 @@ class Recording {
         Log.d("RECORD","Created new Record: " + Title + " with path " + filePath.getPath() );
     }
 
-    String getTitle() {return Title;}
+    public String getTitle() {
+        return Title;
+    }
 
     void setTitle(String title){ Title = title;}
 
-    Uri getUri(){ return filePath;}
+    public Uri getUri() {
+        return filePath;
+    }
 
     void setUri(Uri uri){ filePath = uri; }
 
-    View getMyView() { return myView; }
+    public View getMyView() {
+        return myView;
+    }
 
-    void setMyView(View myView) { this.myView = myView; }
+    public void setMyView(View myView) {
+        this.myView = myView;
+    }
 
     long getDuration() { return Duration; }
 
     void setDuration(long duration) { Duration = duration;  }
 
-    String getFileSize() { return fileSize; }
+    public String getFileSize() {
+        return fileSize;
+    }
 
     void setFileSize(String fileSize) { this.fileSize = fileSize; }
 }
