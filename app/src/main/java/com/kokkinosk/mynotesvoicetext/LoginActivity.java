@@ -1,16 +1,22 @@
 package com.kokkinosk.mynotesvoicetext;
 
-import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import java.lang.ref.WeakReference;
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -30,27 +36,47 @@ public class LoginActivity extends AppCompatActivity {
         findViewById(R.id.login_online_button).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                @SuppressLint("StaticFieldLeak") AsyncTask<Void, Void, Void> execute = new AsyncTask<Void, Void, Void>() {
-                    private WeakReference<Activity> activityReference;
+                findViewById(R.id.login_progressBar).setVisibility(View.VISIBLE);
+                String url = Website.getUrl() + "php/check_valid_user.php";
+                StringRequest stringRequest = new StringRequest(Request.Method.POST, url,
+                        new Response.Listener<String>() {
+                            @Override
+                            public void onResponse(String response) {
+                                findViewById(R.id.login_progressBar).setVisibility(View.INVISIBLE);
+                                if (response.equals("1")) {
+                                    Toast.makeText(getApplicationContext(), "USER OK", Toast.LENGTH_LONG).show();
+                                } else if (response.equals("-1")) {
+                                    Toast.makeText(getApplicationContext(), "INVALID USER", Toast.LENGTH_LONG).show();
+                                } else {
+                                    Toast.makeText(getApplicationContext(), "INVALID RESPONSE", Toast.LENGTH_LONG).show();
 
+                                }
 
-                    final Activity activity = activityReference.get();
-
+                            }
+                        }, new Response.ErrorListener() {
                     @Override
-                    protected Void doInBackground(Void... voids) {
-                        return null;
+                    public void onErrorResponse(VolleyError error) {
+
+                        // Error handling
+                        System.out.println("Something went wrong!");
+                        error.printStackTrace();
+
                     }
 
 
+                }) {
                     @Override
-                    protected void onPostExecute(Void aVoid) {
-                        super.onPostExecute(aVoid);
+                    protected Map<String, String> getParams() {
+                        Map<String, String> params = new HashMap<String, String>();
+                        params.put("username", ((TextView) findViewById(R.id.username)).getText().toString());
+                        params.put("password", ((TextView) findViewById(R.id.password)).getText().toString());
+
+                        return params;
                     }
-                }.execute();
+                };
+                Volley.newRequestQueue(getApplicationContext()).add(stringRequest);
 
 
-                Intent intent = new Intent(view.getContext(), LandingActivity.class);
-                startActivity(intent);
             }
         });
 
