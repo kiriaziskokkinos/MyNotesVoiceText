@@ -13,11 +13,11 @@
         android:layout_marginStart="32dp"
         android:layout_marginEnd="32dp"
         android:orientation="vertical"
-        android:padding="6dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.3">
 
         <ImageView
             android:id="@+id/logo"
@@ -27,7 +27,7 @@
 
         <Space
             android:layout_width="match_parent"
-            android:layout_height="20dp" />
+            android:layout_height="30dp" />
 
         <EditText
             android:id="@+id/username"
@@ -61,7 +61,7 @@
             android:id="@+id/login_online_button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="6dp"
+            android:background="#e0e0e0e0"
             android:text="Sign in " />
 
         <Space
@@ -75,17 +75,24 @@
             android:text="Don't have an account?" />
 
         <Button
-            android:id="@+id/button"
+            android:id="@+id/login_sign_up_button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:background="#e0e0e0e0"
             android:text="Sign Up" />
 
         <Button
             android:id="@+id/login_offline_button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="6dp"
+            android:layout_marginTop="8dp"
+            android:background="#e0e0e0e0"
             android:text="Continue Locally" />
+
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="20dp" />
 
     </LinearLayout>
 

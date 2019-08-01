@@ -56,14 +56,10 @@ public class LoginActivity extends AppCompatActivity {
                         }, new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
-
                         // Error handling
                         System.out.println("Something went wrong!");
                         error.printStackTrace();
-
                     }
-
-
                 }) {
                     @Override
                     protected Map<String, String> getParams() {
@@ -75,8 +71,14 @@ public class LoginActivity extends AppCompatActivity {
                     }
                 };
                 Volley.newRequestQueue(getApplicationContext()).add(stringRequest);
+            }
+        });
 
-
+        findViewById(R.id.login_sign_up_button).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(view.getContext(), SignUpActivity.class);
+                startActivity(intent);
             }
         });
 
