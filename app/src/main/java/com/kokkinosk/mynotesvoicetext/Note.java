@@ -17,11 +17,11 @@ public class Note {
         myView = view;
     }
 
-    View getMyView() {
+    public View getMyView() {
         return myView;
     }
 
-    void setMyView(View myView) {
+    public void setMyView(View myView) {
         this.myView = myView;
     }
 

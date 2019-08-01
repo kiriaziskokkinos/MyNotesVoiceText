@@ -12,17 +12,16 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 
 
-class RecordingManager {
+public class RecordingManager {
 
     private String dirPath;
     static File[] recordingArray;
     private WeakReference activityReference;
     private WeakReference activityContext;
-    static ArrayList<Recording> recordingArrayList = new ArrayList<>();
+    public static ArrayList<Recording> recordingArrayList = new ArrayList<>();
 
 
-
-    RecordingManager(Activity activity){
+    public RecordingManager(Activity activity) {
         if (activity!= null){
             activityReference = new WeakReference<>(activity);
             activityContext = new WeakReference<>(activity.getApplicationContext());

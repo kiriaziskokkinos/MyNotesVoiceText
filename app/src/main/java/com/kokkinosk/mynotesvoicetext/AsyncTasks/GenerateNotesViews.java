@@ -1,4 +1,4 @@
-package com.kokkinosk.mynotesvoicetext;
+package com.kokkinosk.mynotesvoicetext.AsyncTasks;
 
 import android.app.Activity;
 import android.os.AsyncTask;
@@ -6,6 +6,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+
+import com.kokkinosk.mynotesvoicetext.Note;
+import com.kokkinosk.mynotesvoicetext.NoteManager;
+import com.kokkinosk.mynotesvoicetext.R;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -15,7 +19,7 @@ public class GenerateNotesViews extends AsyncTask<Void, View, String> {
     NoteManager nman;
     private WeakReference<Activity> activityReference;
 
-    GenerateNotesViews(Activity context) {
+    public GenerateNotesViews(Activity context) {
         activityReference = new WeakReference<>(context);
         nman = new NoteManager(activityReference.get());
     }

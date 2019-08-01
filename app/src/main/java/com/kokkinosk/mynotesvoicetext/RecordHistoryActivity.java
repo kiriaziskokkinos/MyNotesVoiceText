@@ -10,6 +10,8 @@ import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
+import com.kokkinosk.mynotesvoicetext.AsyncTasks.GenerateRecordingViews;
+
 public class RecordHistoryActivity extends AppCompatActivity {
 
     //RecordingManager recman;
@@ -23,7 +25,6 @@ public class RecordHistoryActivity extends AppCompatActivity {
         ActionBar actionbar = getSupportActionBar();
         actionbar.setTitle("Recording History");
         actionbar.setBackgroundDrawable(new ColorDrawable(Color.RED));
-        //recman = new RecordingManager(this);
         new GenerateRecordingViews(this).execute();
     }
 
