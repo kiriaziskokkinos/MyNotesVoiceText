@@ -58,6 +58,8 @@ public class LoginActivity extends AppCompatActivity {
                     public void onErrorResponse(VolleyError error) {
                         // Error handling
                         System.out.println("Something went wrong!");
+                        findViewById(R.id.login_progressBar).setVisibility(View.INVISIBLE);
+                        Toast.makeText(getApplicationContext(), "INVALID RESPONSE", Toast.LENGTH_LONG).show();
                         error.printStackTrace();
                     }
                 }) {
