@@ -1,7 +1,10 @@
 package com.kokkinosk.mynotesvoicetext;
 
+import android.Manifest;
 import android.animation.Animator;
 import android.annotation.SuppressLint;
+import android.app.Activity;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
@@ -98,11 +101,21 @@ public class RecordActivity extends AppCompatActivity {
         });
 
         ///------/* START/PAUSE RECORDING BUTTON */---------
+        final Activity activity = this;
 
         fab_rec.setOnClickListener(new View.OnClickListener() {
+
             @Override
             public void onClick(View view) {
-                recUIMan.mainAction(view);
+
+
+
+
+                if (!PermissionsUtils.hasPermissions(activity.getApplicationContext(), Manifest.permission.RECORD_AUDIO)){
+                    PermissionsUtils.requestRecordAudioPermission(activity);
+                }
+                else recUIMan.mainAction(view);
+
 
             }
         });
@@ -248,6 +261,7 @@ public class RecordActivity extends AppCompatActivity {
         }
 
         boolean startRecording() {
+
             fileName = Calendar.getInstance().getTime() +".m4a";
             fullFileName = directoryPath+ "/"+fileName;
 
