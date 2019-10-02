@@ -16,6 +16,8 @@ import com.android.volley.Response;
 import com.android.volley.error.VolleyError;
 import com.android.volley.request.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.kokkinosk.mynotesvoicetext.AsyncTasks.GenerateNotesViews;
+import com.kokkinosk.mynotesvoicetext.AsyncTasks.GenerateRecordingViews;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -34,6 +36,7 @@ public class LoginActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+        new User();
 
         findViewById(R.id.login_online_button).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -46,6 +49,10 @@ public class LoginActivity extends AppCompatActivity {
                             public void onResponse(String response) {
                                 findViewById(R.id.login_progressBar).setVisibility(View.INVISIBLE);
                                 if (response.equals("1")) {
+
+                                    new User(((TextView) findViewById(R.id.username)).getText().toString(),((TextView) findViewById(R.id.password)).getText().toString());
+                                    Intent intent = new Intent(getApplicationContext(), LandingActivity.class);
+                                    startActivity(intent);
                                     Toast.makeText(getApplicationContext(), "USER OK", Toast.LENGTH_LONG).show();
 
 
@@ -92,5 +99,10 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
 
+    }
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (User.isLoggedIn) new User();
     }
 }

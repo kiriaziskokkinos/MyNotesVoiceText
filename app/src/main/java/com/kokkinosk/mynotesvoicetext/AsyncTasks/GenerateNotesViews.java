@@ -10,6 +10,7 @@ import android.widget.TextView;
 import com.kokkinosk.mynotesvoicetext.Note;
 import com.kokkinosk.mynotesvoicetext.NoteManager;
 import com.kokkinosk.mynotesvoicetext.R;
+import com.kokkinosk.mynotesvoicetext.User;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -47,6 +48,9 @@ public class GenerateNotesViews extends AsyncTask<Void, View, String> {
             ((LinearLayout) activityReference.get().findViewById(R.id.linlay)).addView(currentNote.getMyView());
             final int finalI = i;
             final Note finalCurrentNote = currentNote;
+            if (!User.getLoginStatus()){
+                currentNote.getMyView().findViewById(R.id.upload_button).setVisibility(View.GONE);
+            }
             currentNote.getMyView().findViewById(R.id.delete_img).setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {

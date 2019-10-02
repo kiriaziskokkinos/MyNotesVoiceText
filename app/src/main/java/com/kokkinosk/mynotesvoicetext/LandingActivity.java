@@ -2,6 +2,7 @@ package com.kokkinosk.mynotesvoicetext;
 
 import android.content.Intent;
 import android.graphics.drawable.ColorDrawable;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.Window;
 
@@ -26,6 +27,7 @@ public class LandingActivity extends AppCompatActivity {
         PermissionsUtils.checkAndRequestPermissions(this);
         createSpeedDial();
         setColours();
+
     }
 
     void setColours(){
@@ -79,5 +81,14 @@ public class LandingActivity extends AppCompatActivity {
         super.onResume();
         new GenerateRecordingViews(this).execute();
         new GenerateNotesViews(this).execute();
+        if (User.isLoggedIn) syncCloud();
     }
+
+    void syncCloud(){
+
+    }
+
 }
+
+
+
