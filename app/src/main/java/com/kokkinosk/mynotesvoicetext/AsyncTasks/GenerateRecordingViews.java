@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.media.MediaMetadataRetriever;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.LinearLayout;
@@ -17,9 +18,18 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 
+
+import com.android.volley.DefaultRetryPolicy;
+import com.android.volley.Request;
+import com.android.volley.Response;
+//import com.android.volley.VolleyErrorleyError;
+import com.android.volley.error.VolleyError;
+import com.android.volley.request.SimpleMultiPartRequest;
+import com.kokkinosk.mynotesvoicetext.VolleyController;
 import com.kokkinosk.mynotesvoicetext.R;
 import com.kokkinosk.mynotesvoicetext.Recording;
 import com.kokkinosk.mynotesvoicetext.RecordingManager;
+import com.kokkinosk.mynotesvoicetext.Website;
 
 import java.io.File;
 import java.lang.ref.WeakReference;
@@ -136,6 +146,67 @@ public class GenerateRecordingViews extends AsyncTask<Void, View, String> {
                             }).show();
                 }
             });
+
+            rec.getMyView().findViewById(R.id.upload_button).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(final View view) {
+                    final String url = Website.getUrl() + "php/upload.php";
+                    activityReference.get().findViewById(R.id.progressBar).setVisibility(View.VISIBLE);
+                    SimpleMultiPartRequest smr = new SimpleMultiPartRequest(Request.Method.POST, url, new Response.Listener<String>() {
+                        @Override
+                        public void onResponse(String response) {
+                            if (response.equals("1")) {
+                                Toast.makeText(activityReference.get(), "USER OK", Toast.LENGTH_LONG).show();
+
+
+                                activityReference.get().findViewById(R.id.progressBar).setVisibility(View.INVISIBLE);
+
+
+
+                            } else if (response.equals("-1")) {
+                                Toast.makeText(activityReference.get(), "INVALID USER", Toast.LENGTH_LONG).show();
+                            } else {
+                                Toast.makeText(activityReference.get(), "INVALID RESPONSE", Toast.LENGTH_LONG).show();
+
+                            }
+
+
+                        }
+                    }, new Response.ErrorListener() {
+                        @Override
+                        public void onErrorResponse(VolleyError error) {
+                            Toast.makeText(activityReference.get(), "ERROR", Toast.LENGTH_LONG).show();
+                        }
+                    });
+                    smr.addFile(
+                            "file"
+                            , FileProvider.getUriForFile(
+                                            view.getContext(),
+                                            view.getContext().getApplicationContext().getPackageName() + ".provider",
+                                            new File(rec.getUri().getPath())
+                            ).getPath()
+
+                    );
+//                    params.put("username", ((TextView) findViewById(R.id.username)).getText().toString());
+//                    params.put("password", ((TextView) findViewById(R.id.password)).getText().toString());
+                    smr.addStringParam("username","123456");
+                    smr.addStringParam("password","11111111");
+                    smr.setRetryPolicy(new DefaultRetryPolicy(30000,
+                            DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                            DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+
+                    if (smr == null) {
+                        Log.e("ERROR","smr is null!");
+                    }
+                    new VolleyController(activity);
+                    VolleyController.getInstance().addToRequestQueue(smr,"TEST");
+
+
+                }
+            });
+
+
+
             ((LinearLayout) activity.findViewById(R.id.linlay)).addView(rec.getMyView(), i);
 
         }

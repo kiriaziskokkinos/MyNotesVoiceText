@@ -11,8 +11,10 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.android.volley.Request;
 import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.StringRequest;
+//import com.android.volley.VolleyError;
+//import com.android.volley.toolbox.StringRequest;
+import com.android.volley.error.VolleyError;
+import com.android.volley.request.StringRequest;
 import com.android.volley.toolbox.Volley;
 
 import java.util.HashMap;
@@ -37,7 +39,7 @@ public class LoginActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 findViewById(R.id.login_progressBar).setVisibility(View.VISIBLE);
-                String url = Website.getUrl() + "php/check_valid_user.php";
+                final String url = Website.getUrl() + "php/check_valid_user.php";
                 StringRequest stringRequest = new StringRequest(Request.Method.POST, url,
                         new Response.Listener<String>() {
                             @Override
@@ -45,6 +47,12 @@ public class LoginActivity extends AppCompatActivity {
                                 findViewById(R.id.login_progressBar).setVisibility(View.INVISIBLE);
                                 if (response.equals("1")) {
                                     Toast.makeText(getApplicationContext(), "USER OK", Toast.LENGTH_LONG).show();
+
+
+
+
+
+
                                 } else if (response.equals("-1")) {
                                     Toast.makeText(getApplicationContext(), "INVALID USER", Toast.LENGTH_LONG).show();
                                 } else {

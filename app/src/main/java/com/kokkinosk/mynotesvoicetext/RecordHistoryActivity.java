@@ -26,6 +26,14 @@ public class RecordHistoryActivity extends AppCompatActivity {
         actionbar.setTitle("Recording History");
         actionbar.setBackgroundDrawable(new ColorDrawable(Color.RED));
         new GenerateRecordingViews(this).execute();
+
+
+
+
+
+
+
+
     }
 
 }
