@@ -23,11 +23,11 @@ public class User {
         return isLoggedIn;
     }
 
-    String getUserName(){
+    public  static String getUserName(){
         return userName;
     }
 
-    String getUserPass(){
+    public static String getUserPass(){
         return userPass;
     }
 

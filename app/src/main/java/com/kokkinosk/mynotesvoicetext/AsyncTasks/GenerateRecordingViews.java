@@ -15,6 +15,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.widget.AppCompatImageView;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 
@@ -25,6 +26,9 @@ import com.android.volley.Response;
 //import com.android.volley.VolleyErrorleyError;
 import com.android.volley.error.VolleyError;
 import com.android.volley.request.SimpleMultiPartRequest;
+import com.android.volley.request.StringRequest;
+import com.android.volley.toolbox.Volley;
+import com.kokkinosk.mynotesvoicetext.LandingActivity;
 import com.kokkinosk.mynotesvoicetext.User;
 import com.kokkinosk.mynotesvoicetext.VolleyController;
 import com.kokkinosk.mynotesvoicetext.R;
@@ -34,6 +38,8 @@ import com.kokkinosk.mynotesvoicetext.Website;
 
 import java.io.File;
 import java.lang.ref.WeakReference;
+import java.util.HashMap;
+import java.util.Map;
 
 public class GenerateRecordingViews extends AsyncTask<Void, View, String> {
 
@@ -118,105 +124,13 @@ public class GenerateRecordingViews extends AsyncTask<Void, View, String> {
                 }
             });
 
-            rec.getMyView().findViewById(R.id.delete_img).setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    new AlertDialog.Builder(view.getContext())
-                            .setTitle("Confirm Delete")
-                            .setCancelable(true)
-                            .setPositiveButton("Delete", new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int whichButton) {
-                                    boolean delete = new File(rec.getUri().getPath()).delete();
-                                    String deleteResult;
-                                    if (!delete) {
-                                        deleteResult = "Could not delete the file.";
-                                    } else {
-                                        deleteResult = "Your recording was deleted";
-                                        ((LinearLayout) activity.findViewById(R.id.linlay)).removeView(rec.getMyView());
-                                        RecordingManager.recordingArrayList.remove(rec);
-                                    }
-                                    Toast.makeText(activity.getApplicationContext(), deleteResult, Toast.LENGTH_LONG).show();
-
-
-                                }
-                            })
-                            .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialogInterface, int i) {
-                                }
-                            }).show();
-                }
-            });
-
-            if (!User.getLoginStatus()){
-                rec.getMyView().findViewById(R.id.upload_button).setVisibility(View.GONE);
-            }
-            rec.getMyView().findViewById(R.id.upload_button).setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(final View view) {
-                    if (User.getLoginStatus()) {
-
-                        final String url = Website.getUrl() + "php/upload.php";
-                        activityReference.get().findViewById(R.id.progressBar).setVisibility(View.VISIBLE);
-                        SimpleMultiPartRequest smr = new SimpleMultiPartRequest(Request.Method.POST, url, new Response.Listener<String>() {
-                            @Override
-                            public void onResponse(String response) {
-                                if (response.equals("1")) {
-                                    Toast.makeText(activityReference.get(), "USER OK", Toast.LENGTH_LONG).show();
-
-
-                                    activityReference.get().findViewById(R.id.progressBar).setVisibility(View.INVISIBLE);
-
-
-                                } else if (response.equals("-1")) {
-                                    Toast.makeText(activityReference.get(), "INVALID USER", Toast.LENGTH_LONG).show();
-                                } else {
-                                    Toast.makeText(activityReference.get(), "INVALID RESPONSE", Toast.LENGTH_LONG).show();
-
-                                }
-
-
-                            }
-                        }, new Response.ErrorListener() {
-                            @Override
-                            public void onErrorResponse(VolleyError error) {
-                                Toast.makeText(activityReference.get(), "ERROR", Toast.LENGTH_LONG).show();
-                            }
-                        });
-                        smr.addFile(
-                                "file"
-                                , FileProvider.getUriForFile(
-                                        view.getContext(),
-                                        view.getContext().getApplicationContext().getPackageName() + ".provider",
-                                        new File(rec.getUri().getPath())
-                                ).getPath()
-
-                        );
-//                    params.put("username", ((TextView) findViewById(R.id.username)).getText().toString());
-//                    params.put("password", ((TextView) findViewById(R.id.password)).getText().toString());
-                        smr.addStringParam("username", "123456");
-                        smr.addStringParam("password", "11111111");
-                        smr.setRetryPolicy(new DefaultRetryPolicy(30000,
-                                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
-                                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
-
-                        if (smr == null) {
-                            Log.e("ERROR", "smr is null!");
-                        }
-                        new VolleyController(activity);
-                        VolleyController.getInstance().addToRequestQueue(smr, "TEST");
-                    }
-
-                }
-            });
-
+            generateDeleteButton(activityReference.get(),rec);
+            generateUploadButton(activityReference.get(),rec);
 
 
             ((LinearLayout) activity.findViewById(R.id.linlay)).addView(rec.getMyView(), i);
 
         }
-        //if (((LinearLayout) activity.findViewById(R.id.linlay)).getChildCount() > i)
-        //  ((LinearLayout) activity.findViewById(R.id.linlay)).removeViews(i+1,((LinearLayout) activity.findViewById(R.id.linlay)).getChildCount());
         ((LinearLayout) activity.findViewById(R.id.linlay)).getChildCount();
         while (((LinearLayout) activity.findViewById(R.id.linlay)).getChildCount() > i) {
             int count = ((LinearLayout) activity.findViewById(R.id.linlay)).getChildCount();
@@ -226,4 +140,188 @@ public class GenerateRecordingViews extends AsyncTask<Void, View, String> {
         ((ProgressBar) activityReference.get().findViewById(R.id.progressBar)).setIndeterminate(false);
         activityReference.get().findViewById(R.id.progressBar).setVisibility(View.GONE);
     }
+
+
+
+
+    void generateDeleteButton(final Activity activity, final Recording rec){
+        rec.getMyView().findViewById(R.id.delete_img).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                new AlertDialog.Builder(view.getContext())
+                        .setTitle("Confirm Delete")
+                        .setCancelable(true)
+                        .setPositiveButton("Delete", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int whichButton) {
+
+
+                                if (User.getLoginStatus()){
+                                    final String url = Website.getUrl() + "php/delete_upload.php";
+                                    StringRequest sr = new StringRequest(Request.Method.POST, url,
+                                            new Response.Listener<String>() {
+                                                @Override
+                                                public void onResponse(String response) {
+                                                    if (response.equals("OK")){
+                                                        boolean delete = new File(rec.getUri().getPath()).delete();
+                                                        String deleteResult;
+                                                        if (!delete) {
+                                                            deleteResult = "Could not delete the file.";
+                                                        } else {
+
+                                                            deleteResult = "Your recording was deleted";
+                                                            ((LinearLayout) activity.findViewById(R.id.linlay)).removeView(rec.getMyView());
+                                                            RecordingManager.recordingArrayList.remove(rec);
+                                                        }
+                                                        Toast.makeText(activity.getApplicationContext(), deleteResult, Toast.LENGTH_LONG).show();
+                                                    }
+                                                    else {
+                                                        Toast.makeText(activity.getApplicationContext(), response , Toast.LENGTH_LONG).show();
+                                                    }
+
+                                                }
+                                            }, new Response.ErrorListener() {
+                                        @Override
+                                        public void onErrorResponse(VolleyError error) {
+
+                                            error.printStackTrace();
+                                        }
+                                    }) {
+                                        @Override
+                                        protected Map<String, String> getParams() {
+                                            Map<String, String> params = new HashMap<String, String>();
+                                            params.put("username",User.getUserName());
+                                            params.put("password", User.getUserPass());
+                                            params.put("filename",rec.getTitle());
+                                            return params;
+                                        }
+                                    };
+
+                                    Volley.newRequestQueue(activityReference.get()).add(sr);
+                                }
+
+
+
+
+
+                            }
+                        })
+                        .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                            }
+                        }).show();
+            }
+        });
+    }
+    void generateUploadButton(final Activity activity, final Recording rec ) {
+        new VolleyController(activity);
+        if (!User.getLoginStatus()) {
+            rec.getMyView().findViewById(R.id.upload_button).setVisibility(View.GONE);
+        } else {
+            rec.getMyView().findViewById(R.id.upload_button).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(final View view) {
+                    if (User.getLoginStatus()) {
+
+                        final String upload_url = Website.getUrl() + "php/upload.php";
+
+//                        activityReference.get().findViewById(R.id.progressBar).setVisibility(View.VISIBLE);
+
+                        SimpleMultiPartRequest uploadRequest = new SimpleMultiPartRequest(Request.Method.POST, upload_url, new Response.Listener<String>() {
+                            @Override
+                            public void onResponse(String response) {
+//                                Toast.makeText(activityReference.get(), response, Toast.LENGTH_LONG).show();
+                                if (response.equals("OK")) {
+                                    AppCompatImageView iv = rec.getMyView().findViewById(R.id.upload_button);
+                                    iv.setImageResource(R.drawable.baseline_cloud_done_24);
+                                    iv.invalidate();
+                                    rec.getMyView().invalidate();
+                                    rec.getMyView().findViewById(R.id.upload_button).invalidate();
+                                    rec.getMyView().findViewById(R.id.upload_button).setOnClickListener(new View.OnClickListener() {
+                                        @Override
+                                        public void onClick(View view) {
+
+                                        }
+                                    });
+
+                                    //                                    Toast.makeText(activityReference.get(), "USER OK", Toast.LENGTH_LONG).show();
+
+
+//                                    activityReference.get().findViewById(R.id.progressBar).setVisibility(View.INVISIBLE);
+
+
+                                } else if (response.equals("-1")) {
+//                                    Toast.makeText(activityReference.get(), "INVALID USER", Toast.LENGTH_LONG).show();
+                                } else {
+//                                    Toast.makeText(activityReference.get(), response, Toast.LENGTH_LONG).show();
+
+                                }
+                            }
+                        }, new Response.ErrorListener() {
+                            @Override
+                            public void onErrorResponse(VolleyError error) {
+                                Toast.makeText(activityReference.get(), "ERROR", Toast.LENGTH_LONG).show();
+                            }
+                        });
+                        uploadRequest.addFile(
+                                "uploadedFile"
+                                , new File(rec.getUri().getPath()).getAbsolutePath()
+                        );
+                        uploadRequest.addStringParam("username", User.getUserName());
+                        uploadRequest.addStringParam("password", User.getUserPass());
+                        uploadRequest.setRetryPolicy(new DefaultRetryPolicy(30000,DefaultRetryPolicy.DEFAULT_MAX_RETRIES, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+
+
+
+                        VolleyController.getInstance().addToRequestQueue(uploadRequest, "UPLOAD");
+
+                    }
+                }
+
+            });
+
+            final String check_upload_url = Website.getUrl() + "php/check_upload.php";
+            StringRequest checkUploadRequest = new StringRequest(Request.Method.POST, check_upload_url,
+                    new Response.Listener<String>() {
+                        @Override
+                        public void onResponse(String response) {
+                            if (response.equals("OK")){
+                                AppCompatImageView iv = rec.getMyView().findViewById(R.id.upload_button);
+                                iv.setImageResource(R.drawable.baseline_cloud_done_24);
+                                rec.getMyView().findViewById(R.id.upload_button).setOnClickListener(new View.OnClickListener() {
+                                    @Override
+                                    public void onClick(View view) {
+
+                                    }
+                                });
+
+                            }
+                            else {
+                                AppCompatImageView iv = rec.getMyView().findViewById(R.id.upload_button);
+                                iv.setImageResource(R.drawable.baseline_cloud_upload_24);
+                            }
+
+                        }
+                    }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+
+                    error.printStackTrace();
+                }
+            }) {
+                @Override
+                protected Map<String, String> getParams() {
+                    Map<String, String> params = new HashMap<String, String>();
+                    params.put("username",User.getUserName());
+                    params.put("password", User.getUserPass());
+                    params.put("filename",rec.getTitle());
+                    return params;
+                }
+            };
+
+            VolleyController.getInstance().addToRequestQueue(checkUploadRequest, "CHECKUPLOAD");
+        }
+    }
 }
+
+
