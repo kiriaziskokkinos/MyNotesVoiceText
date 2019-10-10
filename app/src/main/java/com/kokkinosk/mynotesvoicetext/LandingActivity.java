@@ -4,6 +4,8 @@ import android.content.Intent;
 import android.graphics.drawable.ColorDrawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
 import android.view.Window;
 
 import androidx.appcompat.app.ActionBar;
@@ -73,6 +75,18 @@ public class LandingActivity extends AppCompatActivity {
 
             }
         });
+        findViewById(R.id.scrollView).setOnScrollChangeListener(new View.OnScrollChangeListener() {
+            @Override
+            public void onScrollChange(View view, int i, int i1, int i2, int i3) {
+//               Log.d("SCROLL","i = "+ i + " i1 = " + i1+ " i2 = " + i2+ " i3 = " + i3);
+                if (i1>0){
+                    speedDialView.hide();
+                }
+                else {
+                    speedDialView.show();
+                }
+            }
+        });
     }
 
 
@@ -81,12 +95,9 @@ public class LandingActivity extends AppCompatActivity {
         super.onResume();
         new GenerateRecordingViews(this).execute();
         new GenerateNotesViews(this).execute();
-        if (User.isLoggedIn) syncCloud();
     }
 
-    void syncCloud(){
 
-    }
 
 }
 

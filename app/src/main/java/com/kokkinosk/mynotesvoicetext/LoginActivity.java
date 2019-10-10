@@ -53,7 +53,7 @@ public class LoginActivity extends AppCompatActivity {
                                     new User(((TextView) findViewById(R.id.username)).getText().toString(),((TextView) findViewById(R.id.password)).getText().toString());
                                     Intent intent = new Intent(getApplicationContext(), LandingActivity.class);
                                     startActivity(intent);
-                                    Toast.makeText(getApplicationContext(), "USER OK", Toast.LENGTH_LONG).show();
+//                                    Toast.makeText(getApplicationContext(), "USER OK", Toast.LENGTH_LONG).show();
 
 
 

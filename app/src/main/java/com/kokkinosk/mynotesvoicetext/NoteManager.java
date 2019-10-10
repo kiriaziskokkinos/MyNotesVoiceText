@@ -13,11 +13,13 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.Type;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 
 public class NoteManager {
 
-    public static ArrayList<Note> notes;
+    public static ArrayList<Note> notes ;
     private static File file;
     private static Gson gson = new Gson();
 
@@ -26,13 +28,34 @@ public class NoteManager {
             Log.e("NoteManager","got NULL context in constructor");
         }
         notes = new ArrayList<>();
-        String directoryName = applicationContext.getFilesDir().getPath()+"/"+"Notes";
+        String directoryName;
+        directoryName = applicationContext.getFilesDir().getPath()+"/"+"Notes";
         File directory = new File(directoryName);
+        if (! directory.exists()) directory.mkdir();
+
+
+        if (User.getLoginStatus()) {
+            directoryName = applicationContext.getFilesDir().getPath()+"/"+"Notes/"+md5(User.getUserName());
+        }
+        else {
+             directoryName = applicationContext.getFilesDir().getPath()+"/"+"Notes";
+
+        }
+        directory = new File(directoryName);
         if (! directory.exists()) directory.mkdir();
         String fileName = "notes";
         file = new File(directoryName+"/"+fileName);
-        notes = initializeNotes(applicationContext);
-         Log.d("NoteManager", "Initialized and found " + notes.size() + " notes stored");
+        try {
+            file.createNewFile();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        if (notes!=null) {
+            notes = initializeNotes(applicationContext);
+            Log.d("NoteManager", "Initialized and found " + notes.size() + " notes stored");
+        }
+
     }
 
     public boolean check() {
@@ -101,6 +124,24 @@ public class NoteManager {
 
     ArrayList<Note> getNotesList() {
         return notes;
+    }
+    String md5(String s) {
+        try {
+            // Create MD5 Hash
+            MessageDigest digest = java.security.MessageDigest.getInstance("MD5");
+            digest.update(s.getBytes());
+            byte messageDigest[] = digest.digest();
+
+            // Create Hex String
+            StringBuffer hexString = new StringBuffer();
+            for (int i=0; i<messageDigest.length; i++)
+                hexString.append(Integer.toHexString(0xFF & messageDigest[i]));
+
+            return hexString.toString();
+        }catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
+        return "";
     }
 
 }

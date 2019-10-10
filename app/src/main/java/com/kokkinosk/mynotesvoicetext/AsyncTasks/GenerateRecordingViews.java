@@ -19,34 +19,46 @@ import androidx.appcompat.widget.AppCompatImageView;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 
-
 import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
 import com.android.volley.Response;
-//import com.android.volley.VolleyErrorleyError;
 import com.android.volley.error.VolleyError;
 import com.android.volley.request.SimpleMultiPartRequest;
 import com.android.volley.request.StringRequest;
 import com.android.volley.toolbox.Volley;
-import com.kokkinosk.mynotesvoicetext.LandingActivity;
-import com.kokkinosk.mynotesvoicetext.User;
-import com.kokkinosk.mynotesvoicetext.VolleyController;
+import com.kokkinosk.mynotesvoicetext.CloudRecording;
 import com.kokkinosk.mynotesvoicetext.R;
 import com.kokkinosk.mynotesvoicetext.Recording;
 import com.kokkinosk.mynotesvoicetext.RecordingManager;
+import com.kokkinosk.mynotesvoicetext.User;
+import com.kokkinosk.mynotesvoicetext.VolleyController;
 import com.kokkinosk.mynotesvoicetext.Website;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+
+import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.lang.ref.WeakReference;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
+
+import static com.kokkinosk.mynotesvoicetext.RecordingManager.cloudRecordings;
+import static com.kokkinosk.mynotesvoicetext.RecordingManager.recordingArrayList;
 
 public class GenerateRecordingViews extends AsyncTask<Void, View, String> {
 
     private WeakReference<Activity> activityReference;
     private MediaMetadataRetriever mmr = new MediaMetadataRetriever();
     private RecordingManager recman;
-
+    final Object lock = new Object();
     // only retain a weak reference to the activity
     public GenerateRecordingViews(Activity context) {
         activityReference = new WeakReference<>(context);
@@ -57,15 +69,77 @@ public class GenerateRecordingViews extends AsyncTask<Void, View, String> {
         activityReference.get().findViewById(R.id.progressBar).setVisibility(View.VISIBLE);
         ((ProgressBar) activityReference.get().findViewById(R.id.progressBar)).setIndeterminate(true);
         recman = new RecordingManager(activityReference.get());
+
     }
 
     @Override
-    protected String doInBackground(Void... params) {
+    protected synchronized String doInBackground(Void... params) {
 
-        // do some long running task...
+
+
+        new VolleyController((Activity)activityReference.get());
+        final String check_upload_url = Website.getUrl() + "php/fetch_uploads.php";
+
+        Map<String, String> params2 = new HashMap<>();
+        params2.put("username",User.getUserName());
+        params2.put("password", User.getUserPass());
+
+        StringRequest request = new StringRequest(Request.Method.POST, check_upload_url, new Response.Listener<String>() {
+            @Override
+            public synchronized void onResponse(String response) {
+                Log.d("RESPONSE",response);
+                try {
+                    JSONArray obj = new JSONArray(response);
+                    Log.d("RESPONSE",response);
+                    for (int i=0;i<obj.length();i++){
+                        cloudRecordings.add(new CloudRecording(obj.getJSONObject(i).getString("title"),obj.getJSONObject(i).getString("filepath")));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+
+                for (int j=0;j<recordingArrayList.size();j++){
+                    for (int i=0;i<cloudRecordings.size();i++){
+                        if (recordingArrayList.get(j).getTitle().equals(cloudRecordings.get(i).getTitle())){
+                            cloudRecordings.remove(i);
+//                                    break;
+                        }
+                    }
+                }
+                for (int i=0;i<cloudRecordings.size();i++){
+                    recordingArrayList.add(new Recording(cloudRecordings.get(i).getTitle(),cloudRecordings.get(i).getFilepath()));
+                }
+                cloudRecordings.clear();
+
+
+                synchronized (lock){
+                    lock.notify();
+                }
+
+
+            }
+        }, null);
+
+       request.setParams(params2);
+
+
+        VolleyController.getInstance().getRequestQueue().add(request);
+
+
+
+
+
+        synchronized (lock){
+            try {
+                lock.wait(10000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
         LayoutInflater inflater = activityReference.get().getLayoutInflater();
-        for (int i = 0; i < RecordingManager.recordingArrayList.size(); i++) {
-            RecordingManager.recordingArrayList.get(i).setMyView(inflater.inflate(R.layout.recording_item, (LinearLayout) activityReference.get().findViewById(R.id.linlay), false));
+        for (int i = 0; i < recordingArrayList.size(); i++) {
+            recordingArrayList.get(i).setMyView(inflater.inflate(R.layout.recording_item, (LinearLayout) activityReference.get().findViewById(R.id.linlay), false));
         }
 
         return "task finished";
@@ -89,32 +163,44 @@ public class GenerateRecordingViews extends AsyncTask<Void, View, String> {
         if (activity == null || activity.isFinishing()) return;
 
         int i;
-        for (i = 0; i < RecordingManager.recordingArrayList.size(); i++) {
-            final Recording rec = RecordingManager.recordingArrayList.get(i);
+        for (i = 0; i < recordingArrayList.size(); i++) {
+            final Recording rec = recordingArrayList.get(i);
             currentView = rec.getMyView();
             currentView.setBackgroundColor(ContextCompat.getColor(activity.getApplicationContext(), R.color.colorWhite));
             rec_name = currentView.findViewById(R.id.noteTitle);
             rec_dur = currentView.findViewById(R.id.recording_duration);
             rec_size = currentView.findViewById(R.id.recording_size);
             rec_name.setText(rec.getTitle());
-            mmr.setDataSource(activity.getApplicationContext(), rec.getUri());
-            String durationStr = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
-            millSecond = Integer.parseInt(durationStr);
-            secs = millSecond / 1000;
-            mins = secs / 60;
-            secs = secs % 60;
-            rec_dur.setText("" + String.format("%02d", mins) + ":" + String.format("%02d", secs));
-            rec_size.setText(rec.getFileSize());
-            rec.getMyView().findViewById(R.id.cardview).setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    Intent intent = new Intent(Intent.ACTION_VIEW);
-                    Uri uri = FileProvider.getUriForFile(view.getContext(), view.getContext().getApplicationContext().getPackageName() + ".provider", new File(rec.getUri().getPath()));
-                    intent.setDataAndType(uri, activity.getContentResolver().getType(uri));
-                    intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                    activity.startActivity(intent);
-                }
-            });
+            if (rec.isOnCloud()){
+                AppCompatImageView iv = rec.getMyView().findViewById(R.id.upload_button);
+                iv.setImageResource(R.drawable.baseline_cloud_download_24);
+                rec_dur.setText(" ");
+                rec_size.setText(" ");
+
+            }
+            else {
+                mmr.setDataSource(activity.getApplicationContext(), rec.getUri());
+                String durationStr = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
+                millSecond = Integer.parseInt(durationStr);
+                secs = millSecond / 1000;
+                mins = secs / 60;
+                secs = secs % 60;
+                rec_dur.setText("" + String.format("%02d", mins) + ":" + String.format("%02d", secs));
+                rec_size.setText(rec.getFileSize());
+                rec.getMyView().findViewById(R.id.cardview).setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        Intent intent = new Intent(Intent.ACTION_VIEW);
+                        Uri uri = FileProvider.getUriForFile(view.getContext(), view.getContext().getApplicationContext().getPackageName() + ".provider", new File(rec.getUri().getPath()));
+                        intent.setDataAndType(uri, activity.getContentResolver().getType(uri));
+                        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                        activity.startActivity(intent);
+                    }
+                });
+            }
+
+
+
 
             rec.getMyView().findViewById(R.id.cardview).setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
@@ -131,6 +217,9 @@ public class GenerateRecordingViews extends AsyncTask<Void, View, String> {
             ((LinearLayout) activity.findViewById(R.id.linlay)).addView(rec.getMyView(), i);
 
         }
+
+
+
         ((LinearLayout) activity.findViewById(R.id.linlay)).getChildCount();
         while (((LinearLayout) activity.findViewById(R.id.linlay)).getChildCount() > i) {
             int count = ((LinearLayout) activity.findViewById(R.id.linlay)).getChildCount();
@@ -170,7 +259,7 @@ public class GenerateRecordingViews extends AsyncTask<Void, View, String> {
 
                                                             deleteResult = "Your recording was deleted";
                                                             ((LinearLayout) activity.findViewById(R.id.linlay)).removeView(rec.getMyView());
-                                                            RecordingManager.recordingArrayList.remove(rec);
+                                                            recordingArrayList.remove(rec);
                                                         }
                                                         Toast.makeText(activity.getApplicationContext(), deleteResult, Toast.LENGTH_LONG).show();
                                                     }
@@ -198,6 +287,19 @@ public class GenerateRecordingViews extends AsyncTask<Void, View, String> {
 
                                     Volley.newRequestQueue(activityReference.get()).add(sr);
                                 }
+                                else {
+                                    boolean delete = new File(rec.getUri().getPath()).delete();
+                                    String deleteResult;
+                                    if (!delete) {
+                                        deleteResult = "Could not delete the file.";
+                                    } else {
+
+                                        deleteResult = "Your recording was deleted";
+                                        ((LinearLayout) activity.findViewById(R.id.linlay)).removeView(rec.getMyView());
+                                        recordingArrayList.remove(rec);
+                                    }
+                                    Toast.makeText(activity.getApplicationContext(), deleteResult, Toast.LENGTH_LONG).show();
+                                }
 
 
 
@@ -218,25 +320,122 @@ public class GenerateRecordingViews extends AsyncTask<Void, View, String> {
         if (!User.getLoginStatus()) {
             rec.getMyView().findViewById(R.id.upload_button).setVisibility(View.GONE);
         } else {
-            rec.getMyView().findViewById(R.id.upload_button).setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(final View view) {
-                    if (User.getLoginStatus()) {
 
-                        final String upload_url = Website.getUrl() + "php/upload.php";
+            if (rec.isOnCloud()) {
+//                AppCompatImageView iv = rec.getMyView().findViewById(R.id.upload_button);
+//                iv.setImageResource(R.drawable.baseline_cloud_download_24);
+//                rec.getMyView().findViewById(R.id.upload_button).setOnClickListener(new View.OnClickListener() {
+//                    @Override
+//                    public void onClick(View view) {
+//                        Log.d("DOWNLOAD", rec.getUri().toString());
+//                        SimpleMultiPartRequest downloadRequest = new SimpleMultiPartRequest(Request.Method.GET, ( (String) Website.getUrl() + rec.getUri().toString()), new Response.Listener<byte[]>() {
+//                            @Override
+//                            public void onResponse(byte[] response) {
+//
+//                            }
+//
+//
+//                }, new Response.ErrorListener() {
+//                    @Override
+//                    public void onErrorResponse(VolleyError error) {
+////                                Toast.makeText(activityReference.get(), "", Toast.LENGTH_LONG).show();
+//                    }
+//                });
+                rec.getMyView().findViewById(R.id.upload_button).setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(final View view) {
+                        class TestAsync extends AsyncTask<Void, Integer, String> {
 
-//                        activityReference.get().findViewById(R.id.progressBar).setVisibility(View.VISIBLE);
+                            protected void onPreExecute() {
+                                super.onPreExecute();
+                            }
 
-                        SimpleMultiPartRequest uploadRequest = new SimpleMultiPartRequest(Request.Method.POST, upload_url, new Response.Listener<String>() {
+                            protected String doInBackground(Void...arg0) {
+
+                                try  (BufferedInputStream in = new BufferedInputStream(new URL(Website.getUrl()+"/"+rec.getUri().toString()).openStream())) {
+                                    FileOutputStream fileOutputStream =  new FileOutputStream(recman.recordingsDirPath+"/"+rec.getTitle());
+                                    byte[] dataBuffer = new byte[1024];
+                                    int bytesRead;
+                                    while ((bytesRead = in.read(dataBuffer, 0, 1024)) != -1) {
+                                        fileOutputStream.write(dataBuffer, 0, bytesRead);
+                                    }
+                                } catch (IOException e) {
+                                    // handle exception
+                                }
+                                return "You are at PostExecute";
+                            }
+
+
+                            protected void onPostExecute(String result) {
+                                super.onPostExecute(result);
+                                ((LinearLayout)activity.findViewById(R.id.linlay)).removeAllViews();
+                                new GenerateRecordingViews(activity).execute();
+                                new GenerateNotesViews(activity).execute();
+
+
+                            }
+                        }
+                        new TestAsync().execute();
+
+                    }
+                });
+
+            }
+            else{
+                rec.getMyView().findViewById(R.id.upload_button).setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(final View view) {
+                        if (User.getLoginStatus()) {
+
+                            final String upload_url = Website.getUrl() + "php/upload.php";
+                            SimpleMultiPartRequest uploadRequest = new SimpleMultiPartRequest(Request.Method.POST, upload_url, new Response.Listener<String>() {
+                                @Override
+                                public void onResponse(String response) {
+                                    if (response.equals("OK")) {
+                                        AppCompatImageView iv = rec.getMyView().findViewById(R.id.upload_button);
+                                        iv.setImageResource(R.drawable.baseline_cloud_done_24);
+                                        iv.invalidate();
+                                        rec.getMyView().invalidate();
+                                        rec.getMyView().findViewById(R.id.upload_button).invalidate();
+                                        rec.getMyView().findViewById(R.id.upload_button).setOnClickListener(new View.OnClickListener() {
+                                            @Override
+                                            public void onClick(View view) {
+
+                                            }
+                                        });
+
+                                    }
+                                }
+                            }, new Response.ErrorListener() {
+                                @Override
+                                public void onErrorResponse(VolleyError error) {
+                                }
+                            });
+                            uploadRequest.addFile(
+                                    "uploadedFile"
+                                    , new File(rec.getUri().getPath()).getAbsolutePath()
+                            );
+                            uploadRequest.addStringParam("username", User.getUserName());
+                            uploadRequest.addStringParam("password", User.getUserPass());
+                            uploadRequest.setRetryPolicy(new DefaultRetryPolicy(30000,DefaultRetryPolicy.DEFAULT_MAX_RETRIES, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+
+
+
+                            VolleyController.getInstance().addToRequestQueue(uploadRequest, "UPLOAD");
+
+                        }
+                    }
+
+                });
+
+                final String check_upload_url = Website.getUrl() + "php/check_upload.php";
+                StringRequest checkUploadRequest = new StringRequest(Request.Method.POST, check_upload_url,
+                        new Response.Listener<String>() {
                             @Override
                             public void onResponse(String response) {
-//                                Toast.makeText(activityReference.get(), response, Toast.LENGTH_LONG).show();
-                                if (response.equals("OK")) {
+                                if (response.equals("OK")){
                                     AppCompatImageView iv = rec.getMyView().findViewById(R.id.upload_button);
                                     iv.setImageResource(R.drawable.baseline_cloud_done_24);
-                                    iv.invalidate();
-                                    rec.getMyView().invalidate();
-                                    rec.getMyView().findViewById(R.id.upload_button).invalidate();
                                     rec.getMyView().findViewById(R.id.upload_button).setOnClickListener(new View.OnClickListener() {
                                         @Override
                                         public void onClick(View view) {
@@ -244,84 +443,37 @@ public class GenerateRecordingViews extends AsyncTask<Void, View, String> {
                                         }
                                     });
 
-                                    //                                    Toast.makeText(activityReference.get(), "USER OK", Toast.LENGTH_LONG).show();
-
-
-//                                    activityReference.get().findViewById(R.id.progressBar).setVisibility(View.INVISIBLE);
-
-
-                                } else if (response.equals("-1")) {
-//                                    Toast.makeText(activityReference.get(), "INVALID USER", Toast.LENGTH_LONG).show();
-                                } else {
-//                                    Toast.makeText(activityReference.get(), response, Toast.LENGTH_LONG).show();
-
                                 }
+                                else {
+                                    AppCompatImageView iv = rec.getMyView().findViewById(R.id.upload_button);
+                                    iv.setImageResource(R.drawable.baseline_cloud_upload_24);
+                                }
+
                             }
                         }, new Response.ErrorListener() {
-                            @Override
-                            public void onErrorResponse(VolleyError error) {
-                                Toast.makeText(activityReference.get(), "ERROR", Toast.LENGTH_LONG).show();
-                            }
-                        });
-                        uploadRequest.addFile(
-                                "uploadedFile"
-                                , new File(rec.getUri().getPath()).getAbsolutePath()
-                        );
-                        uploadRequest.addStringParam("username", User.getUserName());
-                        uploadRequest.addStringParam("password", User.getUserPass());
-                        uploadRequest.setRetryPolicy(new DefaultRetryPolicy(30000,DefaultRetryPolicy.DEFAULT_MAX_RETRIES, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
 
-
-
-                        VolleyController.getInstance().addToRequestQueue(uploadRequest, "UPLOAD");
-
+                        error.printStackTrace();
                     }
-                }
+                }) {
+                    @Override
+                    protected Map<String, String> getParams() {
+                        Map<String, String> params = new HashMap<String, String>();
+                        params.put("username",User.getUserName());
+                        params.put("password", User.getUserPass());
+                        params.put("filename",rec.getTitle());
+                        return params;
+                    }
+                };
+                VolleyController.getInstance().addToRequestQueue(checkUploadRequest, "CHECKUPLOAD");
+            }
 
-            });
 
-            final String check_upload_url = Website.getUrl() + "php/check_upload.php";
-            StringRequest checkUploadRequest = new StringRequest(Request.Method.POST, check_upload_url,
-                    new Response.Listener<String>() {
-                        @Override
-                        public void onResponse(String response) {
-                            if (response.equals("OK")){
-                                AppCompatImageView iv = rec.getMyView().findViewById(R.id.upload_button);
-                                iv.setImageResource(R.drawable.baseline_cloud_done_24);
-                                rec.getMyView().findViewById(R.id.upload_button).setOnClickListener(new View.OnClickListener() {
-                                    @Override
-                                    public void onClick(View view) {
-
-                                    }
-                                });
-
-                            }
-                            else {
-                                AppCompatImageView iv = rec.getMyView().findViewById(R.id.upload_button);
-                                iv.setImageResource(R.drawable.baseline_cloud_upload_24);
-                            }
-
-                        }
-                    }, new Response.ErrorListener() {
-                @Override
-                public void onErrorResponse(VolleyError error) {
-
-                    error.printStackTrace();
-                }
-            }) {
-                @Override
-                protected Map<String, String> getParams() {
-                    Map<String, String> params = new HashMap<String, String>();
-                    params.put("username",User.getUserName());
-                    params.put("password", User.getUserPass());
-                    params.put("filename",rec.getTitle());
-                    return params;
-                }
-            };
-
-            VolleyController.getInstance().addToRequestQueue(checkUploadRequest, "CHECKUPLOAD");
         }
+
     }
+
 }
 
 

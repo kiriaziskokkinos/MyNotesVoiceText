@@ -33,6 +33,8 @@ import androidx.core.content.ContextCompat;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.io.File;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Calendar;
 
 public class RecordActivity extends AppCompatActivity {
@@ -65,7 +67,8 @@ public class RecordActivity extends AppCompatActivity {
 
         //--------- VARIABLES ------------
         ActionBar actionbar = getSupportActionBar();
-        directoryPath = getFilesDir().getAbsolutePath()+"/Recordings";
+        if (User.getLoginStatus()) directoryPath = getFilesDir().getAbsolutePath()+"/Recordings/"+md5(User.getUserName());
+        else directoryPath = getFilesDir().getAbsolutePath()+"/Recordings";
         Window window = this.getWindow();
         FloatingActionButton fab_rec = findViewById(R.id.fab_rec);
         FloatingActionButton fab_rec_stop = findViewById(R.id.fab_stop_rec);
@@ -370,6 +373,24 @@ public class RecordActivity extends AppCompatActivity {
             customHandler.postDelayed(this,500);
         }
     };
+    String md5(String s) {
+        try {
+            // Create MD5 Hash
+            MessageDigest digest = java.security.MessageDigest.getInstance("MD5");
+            digest.update(s.getBytes());
+            byte messageDigest[] = digest.digest();
+
+            // Create Hex String
+            StringBuffer hexString = new StringBuffer();
+            for (int i=0; i<messageDigest.length; i++)
+                hexString.append(Integer.toHexString(0xFF & messageDigest[i]));
+
+            return hexString.toString();
+        }catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
+        return "";
+    }
 
 
 }
