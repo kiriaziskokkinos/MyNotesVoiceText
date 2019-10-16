@@ -76,73 +76,76 @@ public class GenerateRecordingViews extends AsyncTask<Void, View, String> {
     protected synchronized String doInBackground(Void... params) {
 
 
+        if (User.getLoginStatus()){
+            new VolleyController((Activity)activityReference.get());
+            final String check_upload_url = Website.getUrl() + "php/fetch_uploads.php";
 
-        new VolleyController((Activity)activityReference.get());
-        final String check_upload_url = Website.getUrl() + "php/fetch_uploads.php";
+            Map<String, String> params2 = new HashMap<>();
+            params2.put("username",User.getUserName());
+            params2.put("password", User.getUserPass());
 
-        Map<String, String> params2 = new HashMap<>();
-        params2.put("username",User.getUserName());
-        params2.put("password", User.getUserPass());
-
-        StringRequest request = new StringRequest(Request.Method.POST, check_upload_url, new Response.Listener<String>() {
-            @Override
-            public synchronized void onResponse(String response) {
-                Log.d("RESPONSE",response);
-                try {
-                    JSONArray obj = new JSONArray(response);
+            StringRequest request = new StringRequest(Request.Method.POST, check_upload_url, new Response.Listener<String>() {
+                @Override
+                public synchronized void onResponse(String response) {
                     Log.d("RESPONSE",response);
-                    for (int i=0;i<obj.length();i++){
-                        cloudRecordings.add(new CloudRecording(obj.getJSONObject(i).getString("title"),obj.getJSONObject(i).getString("filepath")));
+                    try {
+                        JSONArray obj = new JSONArray(response);
+                        Log.d("RESPONSE",response);
+                        for (int i=0;i<obj.length();i++){
+                            cloudRecordings.add(new CloudRecording(obj.getJSONObject(i).getString("title"),obj.getJSONObject(i).getString("filepath")));
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
                     }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
 
 
-                for (int j=0;j<recordingArrayList.size();j++){
-                    for (int i=0;i<cloudRecordings.size();i++){
-                        if (recordingArrayList.get(j).getTitle().equals(cloudRecordings.get(i).getTitle())){
-                            cloudRecordings.remove(i);
+                    for (int j=0;j<recordingArrayList.size();j++){
+                        for (int i=0;i<cloudRecordings.size();i++){
+                            if (recordingArrayList.get(j).getTitle().equals(cloudRecordings.get(i).getTitle())){
+                                cloudRecordings.remove(i);
 //                                    break;
+                            }
                         }
                     }
+                    for (int i=0;i<cloudRecordings.size();i++){
+                        recordingArrayList.add(new Recording(cloudRecordings.get(i).getTitle(),cloudRecordings.get(i).getFilepath()));
+                    }
+                    cloudRecordings.clear();
+
+
+                    synchronized (lock){
+                        lock.notify();
+                    }
+
+
                 }
-                for (int i=0;i<cloudRecordings.size();i++){
-                    recordingArrayList.add(new Recording(cloudRecordings.get(i).getTitle(),cloudRecordings.get(i).getFilepath()));
+            }, null);
+
+            request.setParams(params2);
+
+
+            VolleyController.getInstance().getRequestQueue().add(request);
+
+
+
+
+
+            synchronized (lock){
+                try {
+                    lock.wait(10000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
-                cloudRecordings.clear();
-
-
-                synchronized (lock){
-                    lock.notify();
-                }
-
-
-            }
-        }, null);
-
-       request.setParams(params2);
-
-
-        VolleyController.getInstance().getRequestQueue().add(request);
-
-
-
-
-
-        synchronized (lock){
-            try {
-                lock.wait(10000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
             }
         }
-        LayoutInflater inflater = activityReference.get().getLayoutInflater();
-        for (int i = 0; i < recordingArrayList.size(); i++) {
-            recordingArrayList.get(i).setMyView(inflater.inflate(R.layout.recording_item, (LinearLayout) activityReference.get().findViewById(R.id.linlay), false));
-        }
 
-        return "task finished";
+            LayoutInflater inflater = activityReference.get().getLayoutInflater();
+            for (int i = 0; i < recordingArrayList.size(); i++) {
+                recordingArrayList.get(i).setMyView(inflater.inflate(R.layout.recording_item, (LinearLayout) activityReference.get().findViewById(R.id.linlay), false));
+            }
+            return "task finished";
+
+
     }
 
     @Override

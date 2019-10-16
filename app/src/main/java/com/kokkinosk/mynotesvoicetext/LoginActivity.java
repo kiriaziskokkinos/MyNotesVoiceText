@@ -9,15 +9,13 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
 import com.android.volley.Response;
-//import com.android.volley.VolleyError;
-//import com.android.volley.toolbox.StringRequest;
+import com.android.volley.RetryPolicy;
 import com.android.volley.error.VolleyError;
 import com.android.volley.request.StringRequest;
 import com.android.volley.toolbox.Volley;
-import com.kokkinosk.mynotesvoicetext.AsyncTasks.GenerateNotesViews;
-import com.kokkinosk.mynotesvoicetext.AsyncTasks.GenerateRecordingViews;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -49,21 +47,13 @@ public class LoginActivity extends AppCompatActivity {
                             public void onResponse(String response) {
                                 findViewById(R.id.login_progressBar).setVisibility(View.INVISIBLE);
                                 if (response.equals("1")) {
-
                                     new User(((TextView) findViewById(R.id.username)).getText().toString(),((TextView) findViewById(R.id.password)).getText().toString());
                                     Intent intent = new Intent(getApplicationContext(), LandingActivity.class);
                                     startActivity(intent);
-//                                    Toast.makeText(getApplicationContext(), "USER OK", Toast.LENGTH_LONG).show();
-
-
-
-
-
-
                                 } else if (response.equals("-1")) {
-                                    Toast.makeText(getApplicationContext(), "INVALID USER", Toast.LENGTH_LONG).show();
+                                    Toast.makeText(getApplicationContext(), "Account not found. Check your credentials and try again.", Toast.LENGTH_LONG).show();
                                 } else {
-                                    Toast.makeText(getApplicationContext(), "INVALID RESPONSE", Toast.LENGTH_LONG).show();
+                                    Toast.makeText(getApplicationContext(), "The server did not respond correctly. Please try again later.", Toast.LENGTH_LONG).show();
 
                                 }
 
@@ -71,10 +61,9 @@ public class LoginActivity extends AppCompatActivity {
                         }, new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
-                        // Error handling
                         System.out.println("Something went wrong!");
                         findViewById(R.id.login_progressBar).setVisibility(View.INVISIBLE);
-                        Toast.makeText(getApplicationContext(), "INVALID RESPONSE", Toast.LENGTH_LONG).show();
+                        Toast.makeText(getApplicationContext(), error.getMessage(), Toast.LENGTH_LONG).show();
                         error.printStackTrace();
                     }
                 }) {
@@ -87,6 +76,11 @@ public class LoginActivity extends AppCompatActivity {
                         return params;
                     }
                 };
+
+                stringRequest.setRetryPolicy(new DefaultRetryPolicy(
+                        5000,
+                        DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                        DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
 
                 Volley.newRequestQueue(getApplicationContext()).add(stringRequest);
             }
