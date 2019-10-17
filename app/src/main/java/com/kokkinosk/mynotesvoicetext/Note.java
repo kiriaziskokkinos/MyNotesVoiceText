@@ -8,6 +8,8 @@ public class Note {
     private String Title;
     private String Body;
     private transient View myView;
+    private transient static int id =0;
+    private int myid=0;
     Note() {}
 
 
@@ -15,6 +17,11 @@ public class Note {
         Title = title;
         Body = body;
         myView = view;
+        myid = ++id;
+    }
+
+    public  int getmyId() {
+        return myid;
     }
 
     public View getMyView() {

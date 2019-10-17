@@ -46,7 +46,6 @@ public class GenerateNotesViews extends AsyncTask<Void, View, String> {
             ((TextView) currentNote.getMyView().findViewById(R.id.noteTitle)).setText(currentNote.getTitle());
             ((TextView) currentNote.getMyView().findViewById(R.id.noteBody)).setText(currentNote.getBody());
             ((LinearLayout) activityReference.get().findViewById(R.id.linlay)).addView(currentNote.getMyView());
-            final int finalI = i;
             final Note finalCurrentNote = currentNote;
 
             if (User.isLoggedIn()){
@@ -54,12 +53,20 @@ public class GenerateNotesViews extends AsyncTask<Void, View, String> {
             }
             else {
                 currentNote.getMyView().findViewById(R.id.upload_button).setVisibility(View.GONE);
+                final Note finalCurrentNote1 = currentNote;
                 currentNote.getMyView().findViewById(R.id.delete_button).setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
                         ((LinearLayout) activityReference.get().findViewById(R.id.linlay)).removeView(finalCurrentNote.getMyView());
-                        NoteManager.notes.remove(finalI);
-                        NoteManager.updateNotes();
+//                        NoteManager.notes.remove(finalCurrentNote);
+//                        NoteManager.updateNotes();
+                        for (Note toDelete : NoteManager.notes){
+                            if (finalCurrentNote1.getmyId() == toDelete.getmyId()){
+                                NoteManager.notes.remove(toDelete);
+                                NoteManager.updateNotes();
+                                break;
+                            }
+                        }
                     }
                 });
             }
