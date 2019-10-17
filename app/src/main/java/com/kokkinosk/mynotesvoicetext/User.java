@@ -2,25 +2,25 @@ package com.kokkinosk.mynotesvoicetext;
 
 public class User {
 
-    static boolean  isLoggedIn;
+    static boolean  loginStatus;
     static String userName;
     static String userPass;
 
     public User(){
-        isLoggedIn = false;
+        loginStatus = false;
         userName = "";
         userPass = "";
     }
 
     public User(String name,String pass){
-        isLoggedIn = true;
+        loginStatus = true;
         userName = name;
         userPass = pass;
 
     }
 
-    public static boolean getLoginStatus(){
-        return isLoggedIn;
+    public static boolean isLoggedIn(){
+        return loginStatus;
     }
 
     public  static String getUserName(){

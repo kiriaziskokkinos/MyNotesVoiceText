@@ -9,13 +9,10 @@ import android.util.Log;
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.error.VolleyError;
-import com.android.volley.request.JsonObjectRequest;
 import com.android.volley.request.StringRequest;
-import com.android.volley.toolbox.RequestFuture;
 
 import org.json.JSONArray;
 import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.io.File;
 import java.io.FileFilter;
@@ -25,9 +22,6 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
-
-import static android.provider.ContactsContract.CommonDataKinds.Website.URL;
 
 
 public class RecordingManager {
@@ -54,7 +48,7 @@ public class RecordingManager {
                 }
             }
 
-            if (User.getLoginStatus()) recordingsDirPath = ((Activity)activityReference.get()).getFilesDir().getAbsolutePath()+"/Recordings/"+md5(User.getUserName());
+            if (User.isLoggedIn()) recordingsDirPath = ((Activity)activityReference.get()).getFilesDir().getAbsolutePath()+"/Recordings/"+md5(User.getUserName());
             else recordingsDirPath = ((Activity)activityReference.get()).getFilesDir().getAbsolutePath()+"/Recordings";
             directory = new File(recordingsDirPath);
             if (!directory.exists()) {

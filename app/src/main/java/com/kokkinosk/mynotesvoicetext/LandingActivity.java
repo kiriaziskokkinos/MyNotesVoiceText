@@ -29,7 +29,8 @@ public class LandingActivity extends AppCompatActivity {
         PermissionsUtils.checkAndRequestPermissions(this);
         createSpeedDial();
         setColours();
-
+//        new GenerateRecordingViews(this).execute();
+//        new GenerateNotesViews(this).execute();
     }
 
     void setColours(){
@@ -78,7 +79,6 @@ public class LandingActivity extends AppCompatActivity {
         findViewById(R.id.scrollView).setOnScrollChangeListener(new View.OnScrollChangeListener() {
             @Override
             public void onScrollChange(View view, int i, int i1, int i2, int i3) {
-//               Log.d("SCROLL","i = "+ i + " i1 = " + i1+ " i2 = " + i2+ " i3 = " + i3);
                 if (i1>0){
                     speedDialView.hide();
                 }

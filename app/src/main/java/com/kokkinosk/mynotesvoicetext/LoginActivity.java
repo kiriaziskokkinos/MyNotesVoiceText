@@ -98,6 +98,6 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        if (User.isLoggedIn) new User();
+        if (User.isLoggedIn()) new User();
     }
 }

@@ -34,7 +34,7 @@ public class NoteManager {
         if (! directory.exists()) directory.mkdir();
 
 
-        if (User.getLoginStatus()) {
+        if (User.isLoggedIn()) {
             directoryName = applicationContext.getFilesDir().getPath()+"/"+"Notes/"+md5(User.getUserName());
         }
         else {
@@ -125,7 +125,9 @@ public class NoteManager {
     ArrayList<Note> getNotesList() {
         return notes;
     }
-    String md5(String s) {
+
+
+    private String md5(String s) {
         try {
             // Create MD5 Hash
             MessageDigest digest = java.security.MessageDigest.getInstance("MD5");

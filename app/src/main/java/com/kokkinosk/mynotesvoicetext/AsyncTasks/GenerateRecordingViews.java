@@ -33,18 +33,12 @@ import com.kokkinosk.mynotesvoicetext.RecordingManager;
 import com.kokkinosk.mynotesvoicetext.User;
 import com.kokkinosk.mynotesvoicetext.VolleyController;
 import com.kokkinosk.mynotesvoicetext.Website;
-
 import org.json.JSONArray;
 import org.json.JSONException;
-
 import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.lang.ref.WeakReference;
 import java.net.URL;
 import java.util.HashMap;
@@ -76,7 +70,7 @@ public class GenerateRecordingViews extends AsyncTask<Void, View, String> {
     protected synchronized String doInBackground(Void... params) {
 
 
-        if (User.getLoginStatus()){
+        if (User.isLoggedIn()){
             new VolleyController((Activity)activityReference.get());
             final String check_upload_url = Website.getUrl() + "php/fetch_uploads.php";
 
@@ -122,7 +116,6 @@ public class GenerateRecordingViews extends AsyncTask<Void, View, String> {
             }, null);
 
             request.setParams(params2);
-
 
             VolleyController.getInstance().getRequestQueue().add(request);
 
@@ -237,7 +230,57 @@ public class GenerateRecordingViews extends AsyncTask<Void, View, String> {
 
 
     void generateDeleteButton(final Activity activity, final Recording rec){
-        rec.getMyView().findViewById(R.id.delete_img).setOnClickListener(new View.OnClickListener() {
+        if (rec.isOnCloud()) {
+            rec.getMyView().findViewById(R.id.delete_button).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    final String url = Website.getUrl() + "php/delete_upload.php";
+                    StringRequest sr = new StringRequest(Request.Method.POST, url,
+                            new Response.Listener<String>() {
+                                @Override
+                                public void onResponse(String response) {
+
+                                    if (response.equals("OK")){
+                                        ((LinearLayout) activity.findViewById(R.id.linlay)).removeView(rec.getMyView());
+                                        recordingArrayList.remove(rec);
+                                        Toast.makeText(activity.getApplicationContext(), "Your cloud recording was deleted.", Toast.LENGTH_LONG).show();
+                                    }
+                                    else if (response.equals("NOTFOUND")){
+                                        Toast.makeText(activity.getApplicationContext(), "Your cloud recording could not be found.", Toast.LENGTH_LONG).show();
+                                    }
+                                    else {
+                                        Toast.makeText(activity.getApplicationContext(), response , Toast.LENGTH_LONG).show();
+                                    }
+
+                                }
+                            }, new Response.ErrorListener() {
+                        @Override
+                        public void onErrorResponse(VolleyError error) {
+                            Toast.makeText(activityReference.get().getApplicationContext(),"Couldn't delete cloud file. The local file was also kept.",Toast.LENGTH_LONG).show();
+                            error.printStackTrace();
+                        }
+                    }) {
+                        @Override
+                        protected Map<String, String> getParams() {
+                            Map<String, String> params = new HashMap<String, String>();
+                            params.put("username",User.getUserName());
+                            params.put("password", User.getUserPass());
+                            params.put("filename",rec.getTitle());
+                            return params;
+                        }
+                    };
+
+                    sr.setRetryPolicy(new DefaultRetryPolicy(
+                            5000,
+                            DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                            DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+
+                    Volley.newRequestQueue(activityReference.get()).add(sr);
+                }
+            });
+        }
+        else {
+        rec.getMyView().findViewById(R.id.delete_button).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 new AlertDialog.Builder(view.getContext())
@@ -247,18 +290,19 @@ public class GenerateRecordingViews extends AsyncTask<Void, View, String> {
                             public void onClick(DialogInterface dialog, int whichButton) {
 
 
-                                if (User.getLoginStatus()){
+                                if (User.isLoggedIn()){
                                     final String url = Website.getUrl() + "php/delete_upload.php";
                                     StringRequest sr = new StringRequest(Request.Method.POST, url,
                                             new Response.Listener<String>() {
                                                 @Override
                                                 public void onResponse(String response) {
-                                                    if (response.equals("OK")){
+                                                    if (response.equals("OK") || response.equals("NOTFOUND")){
                                                         boolean delete = new File(rec.getUri().getPath()).delete();
                                                         String deleteResult;
                                                         if (!delete) {
                                                             deleteResult = "Could not delete the file.";
-                                                        } else {
+                                                        }
+                                                        else {
 
                                                             deleteResult = "Your recording was deleted";
                                                             ((LinearLayout) activity.findViewById(R.id.linlay)).removeView(rec.getMyView());
@@ -274,7 +318,7 @@ public class GenerateRecordingViews extends AsyncTask<Void, View, String> {
                                             }, new Response.ErrorListener() {
                                         @Override
                                         public void onErrorResponse(VolleyError error) {
-
+                                            Toast.makeText(activityReference.get().getApplicationContext(),"Couldn't delete cloud file. The local file was also kept.",Toast.LENGTH_LONG).show();
                                             error.printStackTrace();
                                         }
                                     }) {
@@ -287,6 +331,11 @@ public class GenerateRecordingViews extends AsyncTask<Void, View, String> {
                                             return params;
                                         }
                                     };
+
+                                    sr.setRetryPolicy(new DefaultRetryPolicy(
+                                            5000,
+                                            DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                                            DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
 
                                     Volley.newRequestQueue(activityReference.get()).add(sr);
                                 }
@@ -317,33 +366,16 @@ public class GenerateRecordingViews extends AsyncTask<Void, View, String> {
                         }).show();
             }
         });
+        }
     }
     void generateUploadButton(final Activity activity, final Recording rec ) {
         new VolleyController(activity);
-        if (!User.getLoginStatus()) {
+        if (!User.isLoggedIn()) {
             rec.getMyView().findViewById(R.id.upload_button).setVisibility(View.GONE);
         } else {
 
             if (rec.isOnCloud()) {
-//                AppCompatImageView iv = rec.getMyView().findViewById(R.id.upload_button);
-//                iv.setImageResource(R.drawable.baseline_cloud_download_24);
-//                rec.getMyView().findViewById(R.id.upload_button).setOnClickListener(new View.OnClickListener() {
-//                    @Override
-//                    public void onClick(View view) {
-//                        Log.d("DOWNLOAD", rec.getUri().toString());
-//                        SimpleMultiPartRequest downloadRequest = new SimpleMultiPartRequest(Request.Method.GET, ( (String) Website.getUrl() + rec.getUri().toString()), new Response.Listener<byte[]>() {
-//                            @Override
-//                            public void onResponse(byte[] response) {
-//
-//                            }
-//
-//
-//                }, new Response.ErrorListener() {
-//                    @Override
-//                    public void onErrorResponse(VolleyError error) {
-////                                Toast.makeText(activityReference.get(), "", Toast.LENGTH_LONG).show();
-//                    }
-//                });
+
                 rec.getMyView().findViewById(R.id.upload_button).setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(final View view) {
@@ -363,7 +395,7 @@ public class GenerateRecordingViews extends AsyncTask<Void, View, String> {
                                         fileOutputStream.write(dataBuffer, 0, bytesRead);
                                     }
                                 } catch (IOException e) {
-                                    // handle exception
+
                                 }
                                 return "You are at PostExecute";
                             }
@@ -388,7 +420,7 @@ public class GenerateRecordingViews extends AsyncTask<Void, View, String> {
                 rec.getMyView().findViewById(R.id.upload_button).setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(final View view) {
-                        if (User.getLoginStatus()) {
+                        if (User.isLoggedIn()) {
 
                             final String upload_url = Website.getUrl() + "php/upload.php";
                             SimpleMultiPartRequest uploadRequest = new SimpleMultiPartRequest(Request.Method.POST, upload_url, new Response.Listener<String>() {
