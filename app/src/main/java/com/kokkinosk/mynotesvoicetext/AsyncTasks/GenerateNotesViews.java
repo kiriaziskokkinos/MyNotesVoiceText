@@ -1,16 +1,14 @@
 package com.kokkinosk.mynotesvoicetext.AsyncTasks;
-
 import android.app.Activity;
 import android.os.AsyncTask;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-
 import com.kokkinosk.mynotesvoicetext.Note;
 import com.kokkinosk.mynotesvoicetext.NoteManager;
 import com.kokkinosk.mynotesvoicetext.R;
-
+import com.kokkinosk.mynotesvoicetext.User;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 
@@ -29,6 +27,9 @@ public class GenerateNotesViews extends AsyncTask<Void, View, String> {
 
         nman.check();
         LayoutInflater inflater = activityReference.get().getLayoutInflater();
+        if (User.isLoggedIn()){
+
+        }
         for (int i = 0; i < NoteManager.notes.size(); i++) {
             NoteManager.notes.get(i).setMyView(inflater.inflate(R.layout.note_item, (LinearLayout) activityReference.get().findViewById(R.id.linlay), false));
         }
@@ -47,14 +48,34 @@ public class GenerateNotesViews extends AsyncTask<Void, View, String> {
             ((LinearLayout) activityReference.get().findViewById(R.id.linlay)).addView(currentNote.getMyView());
             final int finalI = i;
             final Note finalCurrentNote = currentNote;
-            currentNote.getMyView().findViewById(R.id.delete_img).setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    ((LinearLayout) activityReference.get().findViewById(R.id.linlay)).removeView(finalCurrentNote.getMyView());
-                    NoteManager.notes.remove(finalI);
-                    NoteManager.updateNotes();
-                }
-            });
+
+            if (User.isLoggedIn()){
+
+            }
+            else {
+                currentNote.getMyView().findViewById(R.id.upload_button).setVisibility(View.GONE);
+                currentNote.getMyView().findViewById(R.id.delete_button).setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        ((LinearLayout) activityReference.get().findViewById(R.id.linlay)).removeView(finalCurrentNote.getMyView());
+                        NoteManager.notes.remove(finalI);
+                        NoteManager.updateNotes();
+                    }
+                });
+            }
+
+
         }
+
+
     }
+
+
+    void generateDeleteButton(final Activity activity, final Note note){
+
+    }
+    void generateUploadButton(final Activity activity, final Note note ) {
+
+    }
+
 }

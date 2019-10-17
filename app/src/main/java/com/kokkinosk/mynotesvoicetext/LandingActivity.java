@@ -2,7 +2,10 @@ package com.kokkinosk.mynotesvoicetext;
 
 import android.content.Intent;
 import android.graphics.drawable.ColorDrawable;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
 import android.view.Window;
 
 import androidx.appcompat.app.ActionBar;
@@ -26,6 +29,8 @@ public class LandingActivity extends AppCompatActivity {
         PermissionsUtils.checkAndRequestPermissions(this);
         createSpeedDial();
         setColours();
+//        new GenerateRecordingViews(this).execute();
+//        new GenerateNotesViews(this).execute();
     }
 
     void setColours(){
@@ -71,6 +76,17 @@ public class LandingActivity extends AppCompatActivity {
 
             }
         });
+        findViewById(R.id.scrollView).setOnScrollChangeListener(new View.OnScrollChangeListener() {
+            @Override
+            public void onScrollChange(View view, int i, int i1, int i2, int i3) {
+                if (i1>0){
+                    speedDialView.hide();
+                }
+                else {
+                    speedDialView.show();
+                }
+            }
+        });
     }
 
 
@@ -80,4 +96,10 @@ public class LandingActivity extends AppCompatActivity {
         new GenerateRecordingViews(this).execute();
         new GenerateNotesViews(this).execute();
     }
+
+
+
 }
+
+
+

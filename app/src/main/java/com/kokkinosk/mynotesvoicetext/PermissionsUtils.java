@@ -54,7 +54,7 @@ public class PermissionsUtils {
             // Should we show an explanation?
             if (ActivityCompat.shouldShowRequestPermissionRationale(activity,
                     Manifest.permission.RECORD_AUDIO)) {
-                Toast.makeText(activity, "Write permission is needed to create Excel file ", Toast.LENGTH_SHORT).show();
+                Toast.makeText(activity, "Permission is needed to record audio.", Toast.LENGTH_SHORT).show();
                 // Show an explanation to the user *asynchronously* -- don't
                 // block this thread waiting for the user's response! After the
                 // user sees the explanation, try again to request the
@@ -62,10 +62,11 @@ public class PermissionsUtils {
                 ActivityCompat.requestPermissions(activity, new String[] { Manifest.permission.RECORD_AUDIO },
                         REQUEST_RECORD_AUDIO);
 
-                Toast.makeText(activity, "REQUEST LOCATION PERMISSION", Toast.LENGTH_LONG).show();
+                Toast.makeText(activity, "Permission is needed to record audio.", Toast.LENGTH_LONG).show();
 
             } else {
                 // No explanation needed, we can request the permission.
+                Toast.makeText(activity, "Permission is needed to record audio.", Toast.LENGTH_LONG).show();
                 ActivityCompat.requestPermissions(activity, new String[] { Manifest.permission.RECORD_AUDIO },
                         REQUEST_RECORD_AUDIO);
 

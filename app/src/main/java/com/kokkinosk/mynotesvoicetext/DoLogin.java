@@ -1,4 +1,4 @@
-package com.kokkinosk.mynotesvoicetext.AsyncTasks;
+package com.kokkinosk.mynotesvoicetext;
 
 import android.app.Activity;
 

@@ -1,11 +1,16 @@
 package com.kokkinosk.mynotesvoicetext;
 
+import android.Manifest;
 import android.animation.Animator;
 import android.annotation.SuppressLint;
+import android.app.Activity;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
 import android.graphics.drawable.ColorDrawable;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
@@ -13,6 +18,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.SystemClock;
+import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -26,16 +32,84 @@ import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
+import androidx.core.view.ViewCompat;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.io.File;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Calendar;
+
+class VisualizerView extends View {
+    private static final int MAX_AMPLITUDE = 32767;
+
+    private float[] amplitudes;
+    private float[] vectors;
+    private int insertIdx = 0;
+    private Paint pointPaint;
+    private Paint linePaint;
+    private int width;
+    private int height;
+
+    public VisualizerView(Context context, AttributeSet attrs) {
+        super(context, attrs);
+        linePaint = new Paint();
+        linePaint.setColor(Color.RED);
+        linePaint.setStrokeWidth(5);
+        pointPaint = new Paint();
+        pointPaint.setColor(Color.BLUE);
+        pointPaint.setStrokeWidth(5);
+    }
+
+    @Override
+    protected void onSizeChanged(int width, int h, int oldw, int oldh) {
+        this.width = width;
+        height = h;
+        amplitudes = new float[this.width * 2]; // xy for each point across the width
+        vectors = new float[this.width * 4]; // xxyy for each line across the width
+    }
+
+    /**
+     * modifies draw arrays. cycles back to zero when amplitude samples reach max screen size
+     */
+    public void addAmplitude(int amplitude) {
+        invalidate();
+        float scaledHeight = ((float) amplitude / MAX_AMPLITUDE) * (height - 1);
+        int ampIdx = insertIdx * 2;
+        amplitudes[ampIdx++] = insertIdx;   // x
+        amplitudes[ampIdx] = scaledHeight;  // y
+        int vectorIdx = insertIdx * 4;
+        vectors[vectorIdx++] = insertIdx;   // x0
+        vectors[vectorIdx++] = 0;           // y0
+        vectors[vectorIdx++] = insertIdx;   // x1
+        vectors[vectorIdx] = scaledHeight;  // y1
+        // insert index must be shorter than screen width
+        insertIdx = (insertIdx +10 ) >= width ? 0 : insertIdx +10;
+    }
+
+    public void clearVisualizer(){
+        invalidate();
+        insertIdx =0;
+        amplitudes = new float[this.width * 2]; // xy for each point across the width
+        vectors = new float[this.width * 4]; // xxyy for each line across the width
+        invalidate();
+
+    }
+
+    @Override
+    public void onDraw(Canvas canvas) {
+        canvas.drawLines(vectors, linePaint);
+        canvas.drawPoints(amplitudes, pointPaint);
+    }
+}
+
 
 public class RecordActivity extends AppCompatActivity {
     private static String fileName = null;
     private MediaRecorder recorder = null;
     private MediaPlayer player = null;
+    private VisualizerView visualizerView;
     public TextView timerTextView;
     private long startHTime = 0L;
     private Handler customHandler = new Handler();
@@ -45,8 +119,30 @@ public class RecordActivity extends AppCompatActivity {
     enum Status {
         RECORDING,RESET,PAUSE
     }
+    private Handler handler = new Handler();
+    int maxAmplitude;
+    final Runnable updater = new Runnable() {
+        public void run() {
+            handler.postDelayed(this, 50);
+            if (recUIMan.isPaused) return;
+             if (recorder != null) maxAmplitude = recorder.getMaxAmplitude();
+             else maxAmplitude =0;
+            if (maxAmplitude != 0) {
+                visualizerView.addAmplitude(maxAmplitude);
+            }
+        }
+    };
     String directoryPath ;
     final RecordingUIManager recUIMan = new RecordingUIManager();
+
+
+
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        handler = new Handler();
+        handler.post(updater);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,6 +151,9 @@ public class RecordActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_record);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        visualizerView = (VisualizerView) findViewById(R.id.visualizerView);
+        visualizerView.setScaleY(-1);
+//        getLayoutInflater().inflate((VisualizerView) findViewById(R.id.visualizer),R.id.visualizer,null);
 
         //--------- PERMISSIONS ----------
         PermissionsUtils.checkAndRequestPermissions(this);
@@ -62,7 +161,8 @@ public class RecordActivity extends AppCompatActivity {
 
         //--------- VARIABLES ------------
         ActionBar actionbar = getSupportActionBar();
-        directoryPath = getFilesDir().getAbsolutePath()+"/Recordings";
+        if (User.isLoggedIn()) directoryPath = getFilesDir().getAbsolutePath()+"/Recordings/"+md5(User.getUserName());
+        else directoryPath = getFilesDir().getAbsolutePath()+"/Recordings";
         Window window = this.getWindow();
         FloatingActionButton fab_rec = findViewById(R.id.fab_rec);
         FloatingActionButton fab_rec_stop = findViewById(R.id.fab_stop_rec);
@@ -84,6 +184,7 @@ public class RecordActivity extends AppCompatActivity {
             public void onClick(View view) {
                 // stopRecording();
                 //toggleRecordIcon();
+
                 recUIMan.stopRecording();
                 toggleRecordIcon(Status.RESET);
                 view.animate()
@@ -98,11 +199,21 @@ public class RecordActivity extends AppCompatActivity {
         });
 
         ///------/* START/PAUSE RECORDING BUTTON */---------
+        final Activity activity = this;
 
         fab_rec.setOnClickListener(new View.OnClickListener() {
+
             @Override
             public void onClick(View view) {
-                recUIMan.mainAction(view);
+
+
+
+
+                if (!PermissionsUtils.hasPermissions(activity.getApplicationContext(), Manifest.permission.RECORD_AUDIO)){
+                    PermissionsUtils.requestRecordAudioPermission(activity);
+                }
+                else recUIMan.mainAction(view);
+
 
             }
         });
@@ -248,9 +359,10 @@ public class RecordActivity extends AppCompatActivity {
         }
 
         boolean startRecording() {
+
             fileName = Calendar.getInstance().getTime() +".m4a";
             fullFileName = directoryPath+ "/"+fileName;
-
+            visualizerView.clearVisualizer();
             recorder = new MediaRecorder();
             recorder.setAudioSource(MediaRecorder.AudioSource.MIC);
             recorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
@@ -279,6 +391,7 @@ public class RecordActivity extends AppCompatActivity {
 
             recorder.stop();
             recorder.release();
+            visualizerView.clearVisualizer();
             customHandler.removeCallbacks(updateTimerThread);
             recorder = null;
             isRecording = false;
@@ -354,8 +467,31 @@ public class RecordActivity extends AppCompatActivity {
             if (timerTextView != null && !recUIMan.isPaused)
                 timerTextView.setText("" + String.format("%02d", mins) + ":" + String.format("%02d", secs));
             customHandler.postDelayed(this,500);
+            if (recorder != null){
+                int var = recorder.getMaxAmplitude();
+//                ((TextView)findViewById(R.id.test)).setText(String.valueOf(var));
+            }
+
         }
     };
+    String md5(String s) {
+        try {
+            // Create MD5 Hash
+            MessageDigest digest = java.security.MessageDigest.getInstance("MD5");
+            digest.update(s.getBytes());
+            byte messageDigest[] = digest.digest();
+
+            // Create Hex String
+            StringBuffer hexString = new StringBuffer();
+            for (int i=0; i<messageDigest.length; i++)
+                hexString.append(Integer.toHexString(0xFF & messageDigest[i]));
+
+            return hexString.toString();
+        }catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
+        return "";
+    }
 
 
 }

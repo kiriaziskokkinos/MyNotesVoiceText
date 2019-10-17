@@ -10,6 +10,7 @@ public class Recording {
     private Uri filePath;
     private String fileSize;
     private View myView;
+    private boolean onCloud = false;
 
     Recording(String title, long duration, Uri uri, String size, View view){
         Title = title;
@@ -29,6 +30,20 @@ public class Recording {
         myView = null;
         Log.d("RECORD","Created new Record: " + Title + " with path " + filePath.getPath() );
     }
+    public Recording(String title, String filepath){
+        Title = title;
+        Duration = 0;
+        filePath = Uri.parse(filepath);
+        fileSize = "";
+        myView = null;
+        onCloud = true;
+        Log.d("RECORD","Created new Record: " + Title + " with path " + filePath.getPath() );
+    }
+
+
+    public void setOnCloud(boolean onCloud) {
+        this.onCloud = onCloud;
+    }
 
     public String getTitle() {
         return Title;
@@ -41,7 +56,7 @@ public class Recording {
     }
 
     void setUri(Uri uri){ filePath = uri; }
-
+    
     public View getMyView() {
         return myView;
     }
@@ -59,4 +74,8 @@ public class Recording {
     }
 
     void setFileSize(String fileSize) { this.fileSize = fileSize; }
+
+    public boolean isOnCloud() {
+        return onCloud;
+    }
 }
