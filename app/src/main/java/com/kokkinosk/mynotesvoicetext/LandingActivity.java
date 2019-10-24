@@ -27,20 +27,12 @@ public class LandingActivity extends AppCompatActivity {
         setContentView(R.layout.activity_landing);
 
         PermissionsUtils.checkAndRequestPermissions(this);
-        createSpeedDial();
-        setColours();
-//        new GenerateRecordingViews(this).execute();
-//        new GenerateNotesViews(this).execute();
-    }
-
-    void setColours(){
-        Window window = this.getWindow();
-        window.setStatusBarColor(ContextCompat.getColor(this,R.color.colorDarkOrange));
         ActionBar actionbar = getSupportActionBar();
-        actionbar.setTitle("Notes & Voice Recordings");
-        actionbar.setBackgroundDrawable(new ColorDrawable(ContextCompat.getColor(this,R.color.colorOrange)));
+        if (actionbar != null) {
+            actionbar.setTitle("Notes & Voice Recordings");
+        }
+        createSpeedDial();
     }
-
 
     void createSpeedDial(){
         final SpeedDialView speedDialView = findViewById(R.id.speedDial);

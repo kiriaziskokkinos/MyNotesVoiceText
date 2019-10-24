@@ -19,21 +19,18 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.3">
 
-        <ImageView
-            android:id="@+id/logo"
+        <TextView
+            android:id="@+id/haveAccount"
             android:layout_width="match_parent"
-            android:layout_height="150dp"
-            app:srcCompat="@mipmap/ic_launcher_round" />
-
-        <Space
-            android:layout_width="match_parent"
-            android:layout_height="30dp" />
+            android:layout_height="wrap_content"
+            android:text="Registered user:" />
 
         <EditText
             android:id="@+id/username"
             style="@android:style/Widget.Material.EditText"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="48dp"
+            android:layout_marginTop="8dp"
             android:background="@drawable/rounded_rectangle"
             android:ems="10"
             android:hint="Username"
@@ -47,7 +44,7 @@
             android:id="@+id/password"
             style="@android:style/Widget.Material.EditText"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="48dp"
             android:background="@drawable/rounded_rectangle"
             android:ems="10"
             android:hint="Password"
@@ -69,7 +66,7 @@
             android:layout_height="20dp" />
 
         <TextView
-            android:id="@+id/textView3"
+            android:id="@+id/noAccount"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Don't have an account?" />
@@ -107,6 +104,7 @@
         app:layout_constraintEnd_toEndOf="@+id/linearLayout"
         app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="@+id/linearLayout"
-        app:layout_constraintTop_toBottomOf="@+id/linearLayout" />
+        app:layout_constraintTop_toBottomOf="@+id/linearLayout"
+        app:layout_constraintVertical_bias="0.100000024" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
