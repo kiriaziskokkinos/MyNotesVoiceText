@@ -238,11 +238,28 @@ public class RecordActivity extends AppCompatActivity {
             findViewById(R.id.history).animate().rotationBy(-360).setListener(new Animator.AnimatorListener() {
                 @Override
                 public void onAnimationStart(Animator animator) {
+                    if (recUIMan.isRecording){
+                        recUIMan.stopRecording("");
+                        boolean delete = new File(fullFileName).getAbsoluteFile().delete();
+                        toggleRecordIcon(Status.RESET);
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) findViewById(R.id.fab_stop_rec).animate()
+                                .rotationBy(180)
+                                .translationX(-findViewById(R.id.fab_stop_rec).getWidth() * 0.9f)
+                                .alpha(0f);
+                        findViewById(R.id.fab_stop_rec).setVisibility(View.INVISIBLE);
+                        ((FloatingActionButton) findViewById(R.id.fab_rec)).setImageDrawable(ContextCompat.getDrawable(findViewById(R.id.fab_rec).getContext(), R.drawable.baseline_mic_white_48dp));
+                        findViewById(R.id.fab_rec).setTag("RESET");
+
+                    }
+
+
+
 
                 }
 
                 @Override
                 public void onAnimationEnd(Animator animator) {
+
                     startActivity(new Intent(getApplicationContext(),RecordHistoryActivity.class).putExtra("DIRPATH",directoryPath));
                 }
 
@@ -387,6 +404,18 @@ public class RecordActivity extends AppCompatActivity {
         }
 
         @SuppressLint("SetTextI18n")
+        void stopRecording(String msg) {
+
+            recorder.stop();
+            recorder.release();
+            visualizerView.clearVisualizer();
+            customHandler.removeCallbacks(updateTimerThread);
+            recorder = null;
+            isRecording = false;
+            isPaused = false;
+            ((TextView) findViewById(R.id.timer)).setText("00:00");
+//            if (!msg.equals("DISCARD")) showRenameDialog();
+        }
         void stopRecording() {
 
             recorder.stop();

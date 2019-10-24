@@ -71,11 +71,7 @@ public class NoteManager {
 
             Type type = new TypeToken<ArrayList<Note>>() {
             }.getType();
-            ArrayList<Note> tmp = gson.fromJson(reader, type);
-            notes = tmp;
-
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
+            notes = gson.fromJson(reader, type);
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -85,6 +81,7 @@ public class NoteManager {
 
     private static void writeChanges() {
         try {
+            Log.d("NOTEMANAGER","New Note size is " + notes.size());
             Type type = new TypeToken<ArrayList<Note>>() {
             }.getType();
             FileWriter fw = new FileWriter(file);
