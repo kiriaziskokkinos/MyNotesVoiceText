@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">MyNotes Voice &amp; Text</string>
+    <string name="app_name">MyNotes: Voice &amp; Text</string>
     <string name="Null">Null</string>
     <string name="delete_recording">Delete Recording</string>
     <string name="serverURL">https://server.hopto.me/</string>

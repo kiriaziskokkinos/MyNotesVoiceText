@@ -32,7 +32,6 @@ import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
-import androidx.core.view.ViewCompat;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
@@ -151,7 +150,7 @@ public class RecordActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_record);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-        visualizerView = (VisualizerView) findViewById(R.id.visualizerView);
+        visualizerView = findViewById(R.id.visualizerView);
         visualizerView.setScaleY(-1);
 //        getLayoutInflater().inflate((VisualizerView) findViewById(R.id.visualizer),R.id.visualizer,null);
 
@@ -164,8 +163,8 @@ public class RecordActivity extends AppCompatActivity {
         if (User.isLoggedIn()) directoryPath = getFilesDir().getAbsolutePath()+"/Recordings/"+md5(User.getUserName());
         else directoryPath = getFilesDir().getAbsolutePath()+"/Recordings";
         Window window = this.getWindow();
-        FloatingActionButton fab_rec = findViewById(R.id.fab_rec);
-        FloatingActionButton fab_rec_stop = findViewById(R.id.fab_stop_rec);
+        FloatingActionButton fab_rec_primary = findViewById(R.id.fab_rec_primary);
+        FloatingActionButton fab_rec_secondary = findViewById(R.id.fab_rec_secondary);
 
 
         //--------- CUSTOMIZE LOOK ---------
@@ -178,50 +177,50 @@ public class RecordActivity extends AppCompatActivity {
 
         //---------- F.A.B. SETUP -----------
 
-        ///------/* STOP RECORDING BUTTON */---------
-        fab_rec_stop.setOnClickListener(new View.OnClickListener() {
+        ///------/* START/STOP/PAUSE RECORDING BUTTON */---------
+        final Activity activity = this;
+
+        fab_rec_primary.setOnClickListener(new View.OnClickListener() {
+
             @Override
             public void onClick(View view) {
-                // stopRecording();
-                //toggleRecordIcon();
+                if (!PermissionsUtils.hasPermissions(activity.getApplicationContext(), Manifest.permission.RECORD_AUDIO)){
+                    PermissionsUtils.requestRecordAudioPermission(activity);
+                }
+                else recUIMan.mainAction(view);
+            }
+        });
 
+
+        ///------/* STOP RECORDING BUTTON */---------
+        fab_rec_secondary.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
                 recUIMan.stopRecording();
-                toggleRecordIcon(Status.RESET);
+//                toggleRecordIcon(Status.RESET);
                 view.animate()
                         .rotationBy(180)
                         .translationX(-view.getWidth() * 0.9f)
                         .alpha(0f);
                 view.setVisibility(View.INVISIBLE);
-                ((FloatingActionButton) findViewById(R.id.fab_rec)).setImageDrawable(ContextCompat.getDrawable(findViewById(R.id.fab_rec).getContext(), R.drawable.baseline_mic_white_48dp));
-                findViewById(R.id.fab_rec).setTag("RESET");
-
+                ((FloatingActionButton) findViewById(R.id.fab_rec_primary)).setImageDrawable(ContextCompat.getDrawable(findViewById(R.id.fab_rec_primary).getContext(), R.drawable.baseline_mic_white_48dp));
             }
         });
 
-        ///------/* START/PAUSE RECORDING BUTTON */---------
-        final Activity activity = this;
 
-        fab_rec.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View view) {
-
-
-
-
-                if (!PermissionsUtils.hasPermissions(activity.getApplicationContext(), Manifest.permission.RECORD_AUDIO)){
-                    PermissionsUtils.requestRecordAudioPermission(activity);
-                }
-                else recUIMan.mainAction(view);
-
-
-            }
-        });
     }
 
 
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        if (recUIMan.isRecording){
+            recUIMan.stopRecordingNoPrompt();
+            boolean delete = new File(fullFileName).getAbsoluteFile().delete();
+        }
 
 
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -239,16 +238,16 @@ public class RecordActivity extends AppCompatActivity {
                 @Override
                 public void onAnimationStart(Animator animator) {
                     if (recUIMan.isRecording){
-                        recUIMan.stopRecording("");
+                        recUIMan.stopRecordingNoPrompt();
                         boolean delete = new File(fullFileName).getAbsoluteFile().delete();
-                        toggleRecordIcon(Status.RESET);
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) findViewById(R.id.fab_stop_rec).animate()
+//                        toggleRecordIcon(Status.RESET);
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) findViewById(R.id.fab_rec_secondary).animate()
                                 .rotationBy(180)
-                                .translationX(-findViewById(R.id.fab_stop_rec).getWidth() * 0.9f)
+                                .translationX(-findViewById(R.id.fab_rec_secondary).getWidth() * 0.9f)
                                 .alpha(0f);
-                        findViewById(R.id.fab_stop_rec).setVisibility(View.INVISIBLE);
-                        ((FloatingActionButton) findViewById(R.id.fab_rec)).setImageDrawable(ContextCompat.getDrawable(findViewById(R.id.fab_rec).getContext(), R.drawable.baseline_mic_white_48dp));
-                        findViewById(R.id.fab_rec).setTag("RESET");
+                        findViewById(R.id.fab_rec_secondary).setVisibility(View.INVISIBLE);
+                        ((FloatingActionButton) findViewById(R.id.fab_rec_primary)).setImageDrawable(ContextCompat.getDrawable(findViewById(R.id.fab_rec_primary).getContext(), R.drawable.baseline_mic_white_48dp));
+                        findViewById(R.id.fab_rec_primary).setTag("RESET");
 
                     }
 
@@ -289,12 +288,9 @@ public class RecordActivity extends AppCompatActivity {
                 .setTitle("Save recording as")
                 .setCancelable(false)
                 .setView(newFilename)
-
                 .setPositiveButton("Save", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int whichButton) {
-
                         File from = new File(fullFileName);
-
                         fileName = newFilename.getText().toString();
                         fullFileName = directoryPath + "/"+ fileName;
                         File to = new File(fullFileName);
@@ -324,18 +320,78 @@ public class RecordActivity extends AppCompatActivity {
         private boolean isRecording = false;
         private boolean isPaused = false;
 
-
-        boolean isRecording(){
-            return isRecording;
-        }
-
-        boolean isPaused(){
-            return isPaused;
-        }
-
-
         void mainAction(View v){
-            String tag = (String) v.getTag();
+
+            if (isRecording) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    if (isPaused) {
+                        isPaused = false;
+                        ((FloatingActionButton) findViewById(R.id.fab_rec_primary)).setImageDrawable(ContextCompat.getDrawable(getApplicationContext(), R.drawable.icon_pause));
+                        resumeRecording();
+                    } else {
+                        isPaused = true;
+                        ((FloatingActionButton) findViewById(R.id.fab_rec_primary)).setImageDrawable(ContextCompat.getDrawable(getApplicationContext(), R.drawable.icon_play));
+                        pauseRecording();
+                    }
+                } else {
+                    isRecording = false;
+                    isPaused = false;
+                    ((FloatingActionButton)findViewById(R.id.fab_rec_primary)).setImageDrawable(ContextCompat.getDrawable(findViewById(R.id.fab_rec_primary).getContext(), R.drawable.baseline_mic_white_48dp));
+                    stopRecording();
+                }
+            }
+            else {
+                // IF NOT RECORDING
+                isRecording = true;
+                startRecording();
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    // TOGGLE  FAB_PRIMARY
+                    ((FloatingActionButton) findViewById(R.id.fab_rec_primary)).setImageDrawable(ContextCompat.getDrawable(getApplicationContext(), R.drawable.icon_pause));
+                    // ANIMATE FAB_SECONDARY
+                    findViewById(R.id.fab_rec_secondary).setVisibility(View.VISIBLE);
+                    findViewById(R.id.fab_rec_secondary).animate()
+                                .rotationBy(180)
+                                .translationX(v.getWidth() * 0.9f)
+                                .alpha(1.0f);
+                }
+                else {
+                    // TOGGLE  FAB_PRIMARY
+                    ((FloatingActionButton) findViewById(R.id.fab_rec_primary)).setImageDrawable(ContextCompat.getDrawable(getApplicationContext(), R.drawable.icon_stop_rec));
+                    // FAB_SECONDARY SHOULD BE INVISIBLE)
+                }
+            }
+
+
+
+
+//                if (!isPaused && Build.VERSION.SDK_INT >= Build.VERSION_CODES.N ){
+//                    pauseRecording();
+//                }
+//                //AND IT'S PAUSED ON NOUGAT OR HIGHER...
+//                else if ((isPaused && Build.VERSION.SDK_INT >= Build.VERSION_CODES.N )){
+//
+//                }
+//                else if (isPaused){
+//                    stopRecording();
+//                }
+//            }
+//            else {
+//                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+//                    if (findViewById(R.id.fab_stop_rec).getVisibility() == View.INVISIBLE) {
+//                        findViewById(R.id.fab_stop_rec).setVisibility(View.VISIBLE);
+//                        findViewById(R.id.fab_stop_rec).animate()
+//                                .rotationBy(180)
+//                                .translationX(v.getWidth() * 0.9f)
+//                                .alpha(1.0f);
+//                    }
+//                }
+//                startRecording();
+//            }
+
+
+
+
+//            String tag = (String) v.getTag();
 
             /*
             *
@@ -343,36 +399,36 @@ public class RecordActivity extends AppCompatActivity {
             *
             *
             */
-            if (tag.equals("RESET")){
-                startRecording();
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                    if (findViewById(R.id.fab_stop_rec).getVisibility() == View.INVISIBLE) {
-                        findViewById(R.id.fab_stop_rec).setVisibility(View.VISIBLE);
-                        findViewById(R.id.fab_stop_rec).animate()
-                                .rotationBy(180)
-                                .translationX(v.getWidth() * 0.9f)
-                                .alpha(1.0f);
-
-
-                    }
-                }
-                v.setTag("RECORD");
-            }
-            else if (tag.equals("PAUSE")){
-                resumeRecording();
-                v.setTag("RECORD");
-            }
-            else if (tag.equals("RECORD")){
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                    pauseRecording();
-                    v.setTag( "PAUSE");
-                }
-                // STOP RECORDING ON ANDROID 6.0 INSTEAD OF PAUSE BECAUSE OF NO NATIVE SUPPORT
-                else {
-                    stopRecording();
-                    v.setTag("RESET");
-                }
-            }
+//            if (tag.equals("RESET")){
+//                startRecording();
+//                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+//                    if (findViewById(R.id.fab_stop_rec).getVisibility() == View.INVISIBLE) {
+//                        findViewById(R.id.fab_stop_rec).setVisibility(View.VISIBLE);
+//                        findViewById(R.id.fab_stop_rec).animate()
+//                                .rotationBy(180)
+//                                .translationX(v.getWidth() * 0.9f)
+//                                .alpha(1.0f);
+//
+//
+//                    }
+//                }
+//                v.setTag("RECORD");
+//            }
+//            else if (tag.equals("PAUSE")){
+//                resumeRecording();
+//                v.setTag("RECORD");
+//            }
+//            else if (tag.equals("RECORD")){
+//                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+//                    pauseRecording();
+//                    v.setTag( "PAUSE");
+//                }
+//                // STOP RECORDING ON ANDROID 6.0 INSTEAD OF PAUSE BECAUSE OF NO NATIVE SUPPORT
+//                else {
+//                    stopRecording();
+//                    v.setTag("RESET");
+//                }
+//            }
         }
 
         boolean startRecording() {
@@ -392,7 +448,7 @@ public class RecordActivity extends AppCompatActivity {
                 isRecording = true;
                 startHTime = SystemClock.elapsedRealtime();
                 customHandler.postDelayed(updateTimerThread, 0);
-                toggleRecordIcon(Status.RECORDING);
+//                toggleRecordIcon(Status.RECORDING);
                 return true;
             } catch (Exception e) {
                 Log.e("RECORD", "prepare() failed");
@@ -404,7 +460,7 @@ public class RecordActivity extends AppCompatActivity {
         }
 
         @SuppressLint("SetTextI18n")
-        void stopRecording(String msg) {
+        void stopRecordingNoPrompt() {
 
             recorder.stop();
             recorder.release();
@@ -426,7 +482,7 @@ public class RecordActivity extends AppCompatActivity {
             isRecording = false;
             isPaused = false;
             ((TextView) findViewById(R.id.timer)).setText("00:00");
-            toggleRecordIcon(Status.RESET);
+//            toggleRecordIcon(Status.RESET);
             showRenameDialog();
         }
 
@@ -435,7 +491,7 @@ public class RecordActivity extends AppCompatActivity {
                 recorder.resume();
                 startHTime  = SystemClock.elapsedRealtime() - duration;
                 isPaused = false;
-                toggleRecordIcon(Status.RECORDING);
+//                toggleRecordIcon(Status.RECORDING);
             }
             else {
                 Toast.makeText(getApplicationContext(),"Pause/Resume function does not work in this android version",Toast.LENGTH_SHORT).show();
@@ -447,7 +503,7 @@ public class RecordActivity extends AppCompatActivity {
                 recorder.pause();
                 duration = timeInMilliseconds;
                 isPaused = true;
-                toggleRecordIcon(Status.PAUSE);
+//                toggleRecordIcon(Status.PAUSE);
 
             }
             else {
@@ -464,22 +520,22 @@ public class RecordActivity extends AppCompatActivity {
     }
 
 
-    void toggleRecordIcon(Status status  ){
-        switch (status) {
-            case RESET:
-                ((FloatingActionButton)findViewById(R.id.fab_rec)).setImageDrawable(ContextCompat.getDrawable(findViewById(R.id.fab_rec).getContext(), R.drawable.baseline_mic_white_48dp));
-                break;
-            case PAUSE:
-                ((FloatingActionButton) findViewById(R.id.fab_rec)).setImageDrawable(ContextCompat.getDrawable(getApplicationContext(), R.drawable.icon_play));
-                break;
-            case RECORDING:
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
-                    ((FloatingActionButton) findViewById(R.id.fab_rec)).setImageDrawable(ContextCompat.getDrawable(getApplicationContext(), R.drawable.icon_pause));
-                else
-                    ((FloatingActionButton) findViewById(R.id.fab_rec)).setImageDrawable(ContextCompat.getDrawable(getApplicationContext(), R.drawable.icon_stop_rec));
-                break;
-        }
-    }
+//    void toggleRecordIcon(Status status  ){
+//        switch (status) {
+//            case RESET:
+//                ((FloatingActionButton)findViewById(R.id.fab_rec_primary)).setImageDrawable(ContextCompat.getDrawable(findViewById(R.id.fab_rec_primary).getContext(), R.drawable.baseline_mic_white_48dp));
+//                break;
+//            case PAUSE:
+//                ((FloatingActionButton) findViewById(R.id.fab_rec_primary)).setImageDrawable(ContextCompat.getDrawable(getApplicationContext(), R.drawable.icon_play));
+//                break;
+//            case RECORDING:
+//                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
+//                    ((FloatingActionButton) findViewById(R.id.fab_rec_primary)).setImageDrawable(ContextCompat.getDrawable(getApplicationContext(), R.drawable.icon_pause));
+//                else
+//                    ((FloatingActionButton) findViewById(R.id.fab_rec_primary)).setImageDrawable(ContextCompat.getDrawable(getApplicationContext(), R.drawable.icon_stop_rec));
+//                break;
+//        }
+//    }
 
 
 
