@@ -9,4 +9,5 @@ Minimum Android version is 6.0
 
 
 <b>Then click the link below:</b>
+
 Play Store link: https://play.google.com/store/apps/details?id=com.kokkinosk.mynotesvoicetext
