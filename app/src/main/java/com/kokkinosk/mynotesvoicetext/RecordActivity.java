@@ -39,7 +39,6 @@ import java.io.File;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Calendar;
-
 class VisualizerView extends View {
     private static final int MAX_AMPLITUDE = 32767;
 
@@ -83,6 +82,8 @@ class VisualizerView extends View {
         vectors[vectorIdx++] = 0;           // y0
         vectors[vectorIdx++] = insertIdx;   // x1
         vectors[vectorIdx] = scaledHeight;  // y1
+
+
         // insert index must be shorter than screen width
         insertIdx = (insertIdx +10 ) >= width ? 0 : insertIdx +10;
     }
@@ -92,7 +93,6 @@ class VisualizerView extends View {
         insertIdx =0;
         amplitudes = new float[this.width * 2]; // xy for each point across the width
         vectors = new float[this.width * 4]; // xxyy for each line across the width
-        invalidate();
 
     }
 
@@ -115,22 +115,22 @@ public class RecordActivity extends AppCompatActivity {
     long timeInMilliseconds = 0L;
     long duration = 0L;
     private String fullFileName;
-    enum Status {
-        RECORDING,RESET,PAUSE
-    }
     private Handler handler = new Handler();
     int maxAmplitude;
     final Runnable updater = new Runnable() {
         public void run() {
-            handler.postDelayed(this, 50);
+            handler.postDelayed(this, 10);
             if (recUIMan.isPaused) return;
              if (recorder != null) maxAmplitude = recorder.getMaxAmplitude();
              else maxAmplitude =0;
             if (maxAmplitude != 0) {
                 visualizerView.addAmplitude(maxAmplitude);
+//                visualizerView.addAmplitude(32767);
+
             }
         }
     };
+
     String directoryPath ;
     final RecordingUIManager recUIMan = new RecordingUIManager();
 
@@ -139,6 +139,7 @@ public class RecordActivity extends AppCompatActivity {
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
+        handler.removeCallbacks(updater);
         handler = new Handler();
         handler.post(updater);
     }
@@ -250,10 +251,6 @@ public class RecordActivity extends AppCompatActivity {
                         findViewById(R.id.fab_rec_primary).setTag("RESET");
 
                     }
-
-
-
-
                 }
 
                 @Override
@@ -360,78 +357,9 @@ public class RecordActivity extends AppCompatActivity {
                     // FAB_SECONDARY SHOULD BE INVISIBLE)
                 }
             }
-
-
-
-
-//                if (!isPaused && Build.VERSION.SDK_INT >= Build.VERSION_CODES.N ){
-//                    pauseRecording();
-//                }
-//                //AND IT'S PAUSED ON NOUGAT OR HIGHER...
-//                else if ((isPaused && Build.VERSION.SDK_INT >= Build.VERSION_CODES.N )){
-//
-//                }
-//                else if (isPaused){
-//                    stopRecording();
-//                }
-//            }
-//            else {
-//                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-//                    if (findViewById(R.id.fab_stop_rec).getVisibility() == View.INVISIBLE) {
-//                        findViewById(R.id.fab_stop_rec).setVisibility(View.VISIBLE);
-//                        findViewById(R.id.fab_stop_rec).animate()
-//                                .rotationBy(180)
-//                                .translationX(v.getWidth() * 0.9f)
-//                                .alpha(1.0f);
-//                    }
-//                }
-//                startRecording();
-//            }
-
-
-
-
-//            String tag = (String) v.getTag();
-
-            /*
-            *
-            *   RESET -> RECORD -> PAUSE -> RECORD
-            *
-            *
-            */
-//            if (tag.equals("RESET")){
-//                startRecording();
-//                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-//                    if (findViewById(R.id.fab_stop_rec).getVisibility() == View.INVISIBLE) {
-//                        findViewById(R.id.fab_stop_rec).setVisibility(View.VISIBLE);
-//                        findViewById(R.id.fab_stop_rec).animate()
-//                                .rotationBy(180)
-//                                .translationX(v.getWidth() * 0.9f)
-//                                .alpha(1.0f);
-//
-//
-//                    }
-//                }
-//                v.setTag("RECORD");
-//            }
-//            else if (tag.equals("PAUSE")){
-//                resumeRecording();
-//                v.setTag("RECORD");
-//            }
-//            else if (tag.equals("RECORD")){
-//                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-//                    pauseRecording();
-//                    v.setTag( "PAUSE");
-//                }
-//                // STOP RECORDING ON ANDROID 6.0 INSTEAD OF PAUSE BECAUSE OF NO NATIVE SUPPORT
-//                else {
-//                    stopRecording();
-//                    v.setTag("RESET");
-//                }
-//            }
         }
 
-        boolean startRecording() {
+        void startRecording() {
 
             fileName = Calendar.getInstance().getTime() +".m4a";
             fullFileName = directoryPath+ "/"+fileName;
@@ -449,17 +377,14 @@ public class RecordActivity extends AppCompatActivity {
                 startHTime = SystemClock.elapsedRealtime();
                 customHandler.postDelayed(updateTimerThread, 0);
 //                toggleRecordIcon(Status.RECORDING);
-                return true;
             } catch (Exception e) {
                 Log.e("RECORD", "prepare() failed");
                 e.printStackTrace();
-                return false;
             }
 
 
         }
 
-        @SuppressLint("SetTextI18n")
         void stopRecordingNoPrompt() {
 
             recorder.stop();
@@ -519,26 +444,6 @@ public class RecordActivity extends AppCompatActivity {
 
     }
 
-
-//    void toggleRecordIcon(Status status  ){
-//        switch (status) {
-//            case RESET:
-//                ((FloatingActionButton)findViewById(R.id.fab_rec_primary)).setImageDrawable(ContextCompat.getDrawable(findViewById(R.id.fab_rec_primary).getContext(), R.drawable.baseline_mic_white_48dp));
-//                break;
-//            case PAUSE:
-//                ((FloatingActionButton) findViewById(R.id.fab_rec_primary)).setImageDrawable(ContextCompat.getDrawable(getApplicationContext(), R.drawable.icon_play));
-//                break;
-//            case RECORDING:
-//                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
-//                    ((FloatingActionButton) findViewById(R.id.fab_rec_primary)).setImageDrawable(ContextCompat.getDrawable(getApplicationContext(), R.drawable.icon_pause));
-//                else
-//                    ((FloatingActionButton) findViewById(R.id.fab_rec_primary)).setImageDrawable(ContextCompat.getDrawable(getApplicationContext(), R.drawable.icon_stop_rec));
-//                break;
-//        }
-//    }
-
-
-
     private Runnable updateTimerThread = new Runnable() {
 
 
@@ -564,18 +469,16 @@ public class RecordActivity extends AppCompatActivity {
             // Create MD5 Hash
             MessageDigest digest = java.security.MessageDigest.getInstance("MD5");
             digest.update(s.getBytes());
-            byte messageDigest[] = digest.digest();
-
+            byte[] messageDigest = digest.digest();
             // Create Hex String
-            StringBuffer hexString = new StringBuffer();
-            for (int i=0; i<messageDigest.length; i++)
-                hexString.append(Integer.toHexString(0xFF & messageDigest[i]));
-
+            StringBuilder hexString = new StringBuilder();
+            for (byte b : messageDigest) hexString.append(Integer.toHexString(0xFF & b));
             return hexString.toString();
         }catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
+            return "";
         }
-        return "";
+
     }
 
 

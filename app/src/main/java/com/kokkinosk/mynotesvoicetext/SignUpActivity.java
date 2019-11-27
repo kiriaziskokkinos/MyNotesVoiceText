@@ -2,7 +2,6 @@ package com.kokkinosk.mynotesvoicetext;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.service.autofill.TextValueSanitizer;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
@@ -16,15 +15,9 @@ import com.android.volley.Response;
 import com.android.volley.error.VolleyError;
 import com.android.volley.request.StringRequest;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-
 import java.lang.ref.WeakReference;
 import java.util.HashMap;
 import java.util.Map;
-
-import static com.kokkinosk.mynotesvoicetext.RecordingManager.cloudRecordings;
-import static com.kokkinosk.mynotesvoicetext.RecordingManager.recordingArrayList;
 
 public class SignUpActivity extends AppCompatActivity {
     private WeakReference<Activity> activityReference;
