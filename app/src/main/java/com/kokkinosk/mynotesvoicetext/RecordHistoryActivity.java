@@ -14,7 +14,6 @@ import com.kokkinosk.mynotesvoicetext.AsyncTasks.GenerateRecordingViews;
 
 public class RecordHistoryActivity extends AppCompatActivity {
 
-    //RecordingManager recman;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -26,14 +25,6 @@ public class RecordHistoryActivity extends AppCompatActivity {
         actionbar.setTitle("Recording History");
         actionbar.setBackgroundDrawable(new ColorDrawable(Color.RED));
         new GenerateRecordingViews(this).execute();
-
-
-
-
-
-
-
-
     }
 
 }

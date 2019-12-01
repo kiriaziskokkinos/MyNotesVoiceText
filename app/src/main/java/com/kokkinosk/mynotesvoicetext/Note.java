@@ -10,10 +10,12 @@ public class Note {
     private transient View myView;
     private transient static int id =0;
     private int myid=0;
+    private boolean onCloud = false;
+
     Note() {}
 
 
-    Note(String title, String body, @Nullable View view) {
+    public Note(String title, String body, @Nullable View view) {
         Title = title;
         Body = body;
         myView = view;
@@ -47,4 +49,12 @@ public class Note {
     public void setBody(String body) {
         Body = body;
     }
+    public void setOnCloud(boolean onCloud) {
+        this.onCloud = onCloud;
+    }
+
+    public boolean isOnCloud() {
+        return onCloud;
+    }
+
 }

@@ -88,6 +88,14 @@ public class NoteManager {
             fw.write(gson.toJson(notes, type));
             fw.flush();
             fw.close();
+//            Type type = new TypeToken<Note>() {
+//            }.getType();
+//            for (Note note : notes){
+//                FileWriter fw = new FileWriter(file+"/"+md5(note.getTitle()));
+//            }
+
+
+
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -124,7 +132,7 @@ public class NoteManager {
     }
 
 
-    private String md5(String s) {
+    private static String md5(String s) {
         try {
             // Create MD5 Hash
             MessageDigest digest = java.security.MessageDigest.getInstance("MD5");
